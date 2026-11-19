@@ -1,0 +1,260 @@
+{
+ "license": "CC0 1.0 \u2014 Poly Haven (polyhaven.com)",
+ "models": {
+  "food_apple_01": {
+   "file": "models/food_apple_01/food_apple_01_1k.gltf",
+   "name": "Food Apple 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 473812
+  },
+  "bananas": {
+   "file": "models/bananas/bananas_1k.gltf",
+   "name": "Bananas",
+   "authors": [
+    "Alexander Shulha"
+   ],
+   "bytes": 2479500
+  },
+  "lemon": {
+   "file": "models/lemon/lemon_1k.gltf",
+   "name": "Lemon",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 1851844
+  },
+  "yellow_onion": {
+   "file": "models/yellow_onion/yellow_onion_1k.gltf",
+   "name": "Yellow Onion",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 1805401
+  },
+  "food_avocado_01": {
+   "file": "models/food_avocado_01/food_avocado_01_1k.gltf",
+   "name": "Food Avocado 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 585169
+  },
+  "croissant": {
+   "file": "models/croissant/croissant_1k.gltf",
+   "name": "Croissant",
+   "authors": [
+    "Greg Zaal",
+    "Dario Barresi"
+   ],
+   "bytes": 2098773
+  },
+  "hamburger_buns": {
+   "file": "models/hamburger_buns/hamburger_buns_1k.gltf",
+   "name": "Hamburger Buns",
+   "authors": [
+    "Alexander Shulha"
+   ],
+   "bytes": 2312847
+  },
+  "food_kiwi_01": {
+   "file": "models/food_kiwi_01/food_kiwi_01_1k.gltf",
+   "name": "Food Kiwi 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 794646
+  },
+  "food_lime_01": {
+   "file": "models/food_lime_01/food_lime_01_1k.gltf",
+   "name": "Food Lime 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 579302
+  },
+  "sweet_potato": {
+   "file": "models/sweet_potato/sweet_potato_1k.gltf",
+   "name": "Sweet Potato",
+   "authors": [
+    "Jan Martens"
+   ],
+   "bytes": 1769475
+  },
+  "food_pomegranate_01": {
+   "file": "models/food_pomegranate_01/food_pomegranate_01_1k.gltf",
+   "name": "Food Pomegranate 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 610846
+  },
+  "wooden_cutting_board": {
+   "file": "models/wooden_cutting_board/wooden_cutting_board_1k.gltf",
+   "name": "Wooden Cutting Board",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 1965772
+  },
+  "wooden_bowl_01": {
+   "file": "models/wooden_bowl_01/wooden_bowl_01_1k.gltf",
+   "name": "Wooden Bowl 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 1823237
+  },
+  "wooden_spoon": {
+   "file": "models/wooden_spoon/wooden_spoon_1k.gltf",
+   "name": "Wooden Spoon",
+   "authors": [
+    "Ronnie Barter"
+   ],
+   "bytes": 1974577
+  },
+  "jug_01": {
+   "file": "models/jug_01/jug_01_1k.gltf",
+   "name": "Jug 01",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 1227735
+  },
+  "tea_set_01": {
+   "file": "models/tea_set_01/tea_set_01_1k.gltf",
+   "name": "Tea Set 01",
+   "authors": [
+    "James Ray Cock",
+    "Rico Cilliers",
+    "Jurita Burger"
+   ],
+   "bytes": 2282591
+  },
+  "vintage_electric_kettle": {
+   "file": "models/vintage_electric_kettle/vintage_electric_kettle_1k.gltf",
+   "name": "Vintage Electric Kettle",
+   "authors": [
+    "SV Garip"
+   ],
+   "bytes": 2387109
+  },
+  "wine_bottles_01": {
+   "file": "models/wine_bottles_01/wine_bottles_01_1k.gltf",
+   "name": "Wine Bottles 01",
+   "authors": [
+    "Rico Cilliers",
+    "Jurita Burger"
+   ],
+   "bytes": 3909317
+  },
+  "wicker_basket_01": {
+   "file": "models/wicker_basket_01/wicker_basket_01_1k.gltf",
+   "name": "Wicker Basket 01",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 2730151
+  },
+  "multi_cleaner_bottle": {
+   "file": "models/multi_cleaner_bottle/multi_cleaner_bottle_1k.gltf",
+   "name": "Multi Cleaner Bottle",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 1380294
+  },
+  "ceramic_vase_01": {
+   "file": "models/ceramic_vase_01/ceramic_vase_01_1k.gltf",
+   "name": "Ceramic Vase 01",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 418457
+  },
+  "pot_enamel_01": {
+   "file": "models/pot_enamel_01/pot_enamel_01_1k.gltf",
+   "name": "Pot Enamel 01",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 1744727
+  },
+  "brass_pan_01": {
+   "file": "models/brass_pan_01/brass_pan_01_1k.gltf",
+   "name": "Brass Pan 01",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "bytes": 1615932
+  },
+  "potted_plant_04": {
+   "file": "models/potted_plant_04/potted_plant_04_1k.gltf",
+   "name": "Potted Plant 04",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 2122625
+  },
+  "potted_plant_01": {
+   "file": "models/potted_plant_01/potted_plant_01_1k.gltf",
+   "name": "Potted Plant 01",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "bytes": 6325139
+  },
+  "wall_clock": {
+   "file": "models/wall_clock/wall_clock_1k.gltf",
+   "name": "Wall Clock",
+   "authors": [
+    "PierreB3D"
+   ],
+   "bytes": 1564880
+  },
+  "bar_chair_round_01": {
+   "file": "models/bar_chair_round_01/bar_chair_round_01_1k.gltf",
+   "name": "Bar Chair Round 01",
+   "authors": [
+    "Dairon Sanchez"
+   ],
+   "bytes": 2812333
+  }
+ },
+ "textures": {
+  "marble_01": {
+   "diff": "textures/marble_01/marble_01_diff_2k.jpg",
+   "nor_gl": "textures/marble_01/marble_01_nor_gl_2k.jpg",
+   "rough": "textures/marble_01/marble_01_rough_2k.jpg"
+  },
+  "long_white_tiles": {
+   "diff": "textures/long_white_tiles/long_white_tiles_diff_2k.jpg",
+   "nor_gl": "textures/long_white_tiles/long_white_tiles_nor_gl_2k.jpg",
+   "rough": "textures/long_white_tiles/long_white_tiles_rough_2k.jpg"
+  },
+  "herringbone_parquet": {
+   "diff": "textures/herringbone_parquet/herringbone_parquet_diff_2k.jpg",
+   "nor_gl": "textures/herringbone_parquet/herringbone_parquet_nor_gl_2k.jpg",
+   "rough": "textures/herringbone_parquet/herringbone_parquet_rough_2k.jpg"
+  },
+  "white_plaster_02": {
+   "diff": "textures/white_plaster_02/white_plaster_02_diff_1k.jpg",
+   "nor_gl": "textures/white_plaster_02/white_plaster_02_nor_gl_1k.jpg",
+   "rough": "textures/white_plaster_02/white_plaster_02_rough_1k.jpg"
+  },
+  "white_oak_veneer": {
+   "diff": "textures/white_oak_veneer/white_oak_veneer_diff_1k.jpg",
+   "nor_gl": "textures/white_oak_veneer/white_oak_veneer_nor_gl_1k.jpg",
+   "rough": "textures/white_oak_veneer/white_oak_veneer_rough_1k.jpg"
+  },
+  "rough_linen": {
+   "diff": "textures/rough_linen/rough_linen_diff_1k.jpg",
+   "nor_gl": "textures/rough_linen/rough_linen_nor_gl_1k.jpg",
+   "rough": "textures/rough_linen/rough_linen_rough_1k.jpg"
+  }
+ },
+ "hdri": {
+  "lythwood_room": "hdri/lythwood_room_1k.hdr"
+ }
+}

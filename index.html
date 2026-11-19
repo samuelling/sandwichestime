@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sandwichestime — a virtual sandwich task</title>
+<link rel="stylesheet" href="src/ui/style.css">
+<script type="importmap">
+{ "imports": {
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+
+<div id="landing" class="panel">
+  <h1>sandwiches<span>time</span></h1>
+  <p class="lede">A modern take on Hayhoe's sandwich task. You'll make a peanut butter and jelly sandwich in a virtual kitchen while your hands, gaze and actions are logged.</p>
+  <form id="setup">
+    <div class="grid">
+      <label>Participant ID <input name="participant" value="pilot01" autocomplete="off"></label>
+      <label>Session <input name="session" value="1" type="number" min="1"></label>
+      <label>Instructions
+        <select name="condition">
+          <option value="standard">standard: make PB&amp;J</option>
+          <option value="tidy">tidy: close everything after</option>
+          <option value="cut">cut: make and cut in half</option>
+        </select></label>
+      <label>Layout
+        <select name="layout">
+          <option value="counter">counter: everything out (Hayhoe 2003)</option>
+          <option value="stored">stored: jelly in fridge, knife in drawer, plate in cupboard</option>
+        </select></label>
+      <label>Layout seed <input name="seed" value="1" type="number"></label>
+      <label>Distractors
+        <select name="distractors">
+          <option value="full">full (≈30 objects)</option>
+          <option value="sparse">sparse (≈10 objects)</option>
+          <option value="none">none</option>
+        </select></label>
+      <label>Hands
+        <select name="input">
+          <option value="mouse">mouse + keyboard (pilot / debug)</option>
+          <option value="webcam">webcam hand tracking (MediaPipe)</option>
+          <option value="xr">headset hand tracking (WebXR)</option>
+        </select></label>
+      <label>Gaze
+        <select name="gaze">
+          <option value="none">none</option>
+          <option value="webcam">webcam iris tracking (calibrated)</option>
+          <option value="socket">external eye tracker (WebSocket)</option>
+          <option value="mouse">mouse as gaze (debug only)</option>
+        </select></label>
+      <label class="wide">Eye tracker socket <input name="socket" value="ws://localhost:8765"></label>
+      <label class="wide">Upload endpoint (optional) <input name="endpoint" placeholder="https://… (POST JSON)"></label>
+      <label class="check"><input type="checkbox" name="saliency" checked> log AOI visibility + saliency (desktop, 5 Hz)</label>
+      <label class="check"><input type="checkbox" name="quality" checked> high-quality rendering (AO, soft shadows)</label>
+    </div>
+    <button type="submit" id="start">Enter the kitchen</button>
+  </form>
+  <details class="help">
+    <summary>Controls</summary>
+    <table>
+      <tr><td>Mouse move</td><td>move the active hand</td></tr>
+      <tr><td>Click</td><td>grasp / release</td></tr>
+      <tr><td>Tab</td><td>switch active hand (left / right)</td></tr>
+      <tr><td>Space (hold)</td><td>press down: spread, scoop, cut, wipe</td></tr>
+      <tr><td>Wheel</td><td>twist a lid you hold / raise or lower a held object</td></tr>
+      <tr><td>F, Q / E</td><td>flip held object, rotate held object</td></tr>
+      <tr><td>A / D, ← / →</td><td>step along the counter</td></tr>
+      <tr><td>Right-drag</td><td>look around</td></tr>
+      <tr><td>Bell</td><td>ring it (grasp it) when the sandwich is done</td></tr>
+    </table>
+    <p>Webcam: pinch thumb and index to grasp, roll your wrist to twist or flip. Headset: pinch or squeeze; everything is 1:1 scale.</p>
+  </details>
+  <p class="foot">Assets: CC0 photoscans from <a href="https://polyhaven.com" target="_blank">Poly Haven</a>. Data stays in your browser unless you set an upload endpoint.</p>
+</div>
+
+<div id="hud" hidden>
+  <div id="instruction"></div>
+  <div id="status"><span id="hand-ind"></span><span id="fps"></span></div>
+  <div id="toast"></div>
+</div>
+
+<div id="calib" hidden><div id="calib-dot"></div><div id="calib-msg"></div></div>
+<video id="cam" playsinline muted hidden></video>
+<div id="report" class="panel" hidden></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

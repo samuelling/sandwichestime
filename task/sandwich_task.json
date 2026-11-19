@@ -1,0 +1,57 @@
+{
+  "name": "pbj",
+  "version": 1,
+  "description": "Peanut butter and jelly sandwich, after Hayhoe, Shrivastava, Mruczek & Pelz (2003, JoV) and Land & Hayhoe (2001). Shared by the browser task (src/task) and the Python analysis (analysis/sandwich).",
+  "instructions": {
+    "standard": "Make a peanut butter and jelly sandwich on the plate. When you are finished, ring the bell.",
+    "tidy": "Make a peanut butter and jelly sandwich on the plate. Close the jars and the bread bag when you are done, then ring the bell.",
+    "cut": "Make a peanut butter and jelly sandwich on the plate and cut it in half. When you are finished, ring the bell."
+  },
+  "task_objects": {
+    "plate":      {"label": "plate",              "aoi": "plate",      "grasp": "body"},
+    "bread_bag":  {"label": "bread bag",          "aoi": "bread_bag",  "grasp": "body"},
+    "bread_clip": {"label": "bread bag clip",     "aoi": "bread_bag",  "grasp": "body"},
+    "slice":      {"label": "bread slice",        "aoi": "slice_*",    "grasp": "body", "count": 8},
+    "pb_jar":     {"label": "peanut butter jar",  "aoi": "pb_jar",     "grasp": "body"},
+    "pb_lid":     {"label": "peanut butter lid",  "aoi": "pb_jar",     "grasp": "twist"},
+    "jelly_jar":  {"label": "jelly jar",          "aoi": "jelly_jar",  "grasp": "body"},
+    "jelly_lid":  {"label": "jelly lid",          "aoi": "jelly_jar",  "grasp": "twist"},
+    "knife":      {"label": "butter knife",       "aoi": "knife",      "grasp": "tool"},
+    "towel":      {"label": "dish towel",         "aoi": "towel",      "grasp": "body"},
+    "bell":       {"label": "service bell",       "aoi": "bell",       "grasp": "press"}
+  },
+  "subgoals": [
+    {"id": "bag_open",      "label": "open bread bag",              "requires": []},
+    {"id": "slice_a",       "label": "first slice on plate",        "requires": ["bag_open"]},
+    {"id": "slice_b",       "label": "second slice on plate",       "requires": ["bag_open"]},
+    {"id": "pb_open",       "label": "open peanut butter",          "requires": []},
+    {"id": "jelly_open",    "label": "open jelly",                  "requires": []},
+    {"id": "knife_in_hand", "label": "pick up knife",               "requires": []},
+    {"id": "pb_loaded",     "label": "load knife with peanut butter","requires": ["pb_open", "knife_in_hand"]},
+    {"id": "pb_spread",     "label": "spread peanut butter",        "requires": ["pb_loaded", "slice_a"]},
+    {"id": "jelly_loaded",  "label": "load knife with jelly",       "requires": ["jelly_open", "knife_in_hand"]},
+    {"id": "jelly_spread",  "label": "spread jelly",                "requires": ["jelly_loaded", "slice_a"]},
+    {"id": "closed",        "label": "close sandwich",              "requires": ["pb_spread", "jelly_spread", "slice_b"]},
+    {"id": "cut",           "label": "cut sandwich",                "requires": ["closed", "knife_in_hand"], "condition": "cut"},
+    {"id": "pb_closed",     "label": "close peanut butter",         "requires": ["pb_spread"],    "condition": "tidy"},
+    {"id": "jelly_closed",  "label": "close jelly",                 "requires": ["jelly_spread"], "condition": "tidy"},
+    {"id": "bag_closed",    "label": "close bread bag",             "requires": ["slice_b"],      "condition": "tidy"},
+    {"id": "done",          "label": "ring bell",                   "requires": ["closed"]}
+  ],
+  "thresholds": {
+    "spread_coverage_done": 0.55,
+    "knife_load_seconds": 0.35,
+    "lid_turns_to_open": 1.25,
+    "sandwich_alignment_m": 0.035,
+    "grasp_radius_m": 0.045,
+    "gaze_aoi_tolerance_deg": 1.5,
+    "fixation_velocity_deg_s": 40,
+    "fixation_min_ms": 80
+  },
+  "action_costs_s": {
+    "_comment": "Fixed time costs used by the planner (analysis/sandwich/planner.py) on top of Fitts-like reach time.",
+    "grasp": 0.35, "release": 0.25, "twist_off": 1.1, "twist_on": 1.1, "open_clip": 0.6,
+    "dip": 0.6, "spread": 2.4, "flip_place": 0.6, "cut": 1.0, "press": 0.3,
+    "reach_s_per_m": 0.9, "reach_base": 0.25
+  }
+}

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sandwich"
+version = "0.1.0"
+description = "Analysis for sandwichestime: optimal bimanual plans, step-wise regret, gaze roles, attention-model comparison"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "pandas", "matplotlib"]
+
+[project.optional-dependencies]
+dev = ["pytest", "playwright"]
+
+[tool.setuptools]
+packages = ["sandwich"]

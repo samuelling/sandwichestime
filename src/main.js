@@ -1,0 +1,196 @@
+// sandwichestime — bootstrap: renderer, kitchen, layout, inputs, gaze, logging.
+import * as THREE from 'three';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { World } from './core/world.js';
+import { buildMaterials, setMaxAnisotropy } from './scene/materials.js';
+import { buildKitchen } from './scene/kitchen.js';
+import { buildLayout } from './scene/layout.js';
+import { Hand, HandRig } from './interact/hand.js';
+import { Manipulator } from './interact/manip.js';
+import { MouseInput, Body } from './interact/mouse.js';
+import { Vision } from './interact/vision.js';
+import { WebcamHands } from './interact/webcam.js';
+import { XRHands } from './interact/xr.js';
+import { Autopilot } from './interact/autopilot.js';
+import { Gaze, MouseGaze, SocketGaze, WebcamGaze } from './gaze/gaze.js';
+import { AOIBuffer } from './gaze/aoibuffer.js';
+import { Logger } from './log/logger.js';
+import { TaskMonitor } from './task/task.js';
+import { renderReport, quickMetrics } from './ui/report.js';
+import { toast } from './util/util.js';
+
+const $ = s => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const form = $('#setup');
+for (const [k, v] of params) { const el = form.elements[k]; if (el) { if (el.type === 'checkbox') el.checked = v !== '0'; else { if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; } } }
+form.addEventListener('submit', e => { e.preventDefault(); start(readConfig()).catch(err => { console.error(err); alert('Could not start: ' + err.message); }); });
+if (params.get('auto') === '1') queueMicrotask(() => start(readConfig()).catch(e => { console.error(e); window.__error = String(e.stack || e); }));
+
+function readConfig() {
+  const f = new FormData(form), c = Object.fromEntries(f.entries());
+  c.seed = +c.seed || 1; c.session = +c.session || 1; c.saliency = form.elements.saliency.checked; c.quality = form.elements.quality.checked;
+  c.speed = +(params.get('speed') || 1);
+  return c;
+}
+
+async function start(cfg) {
+  $('#landing').hidden = true;
+  const canvas = $('#view');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(params.get('fast') ? 0.5 : Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
+  renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.xr.enabled = cfg.input === 'xr';
+  setMaxAnisotropy(renderer.capabilities.getMaxAnisotropy());
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0xd9d2c6);
+  const camera = new THREE.PerspectiveCamera(56, innerWidth / innerHeight, 0.03, 30);
+  const world = new World(scene);
+  window.__sandwich = { world, scene, camera, renderer, cfg };
+
+  const [manifest, taskDef] = await Promise.all([fetch('assets/manifest.json').then(r => r.json()), fetch('task/sandwich_task.json').then(r => r.json())]);
+  const M = buildMaterials(manifest); world.M = M;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const hdr = await new HDRLoader().loadAsync('assets/' + manifest.hdri.lythwood_room);
+  scene.environment = pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity = 0.5; hdr.dispose();
+  const kitchen = buildKitchen(world, M);
+  const L = await buildLayout(world, kitchen, M, manifest, cfg);
+
+  // hands
+  const hands = [new Hand('L'), new Hand('R')];
+  const rigs = hands.map(h => new HandRig(scene, h.side));
+  const manip = new Manipulator(world, L.task, cfg, taskDef);
+  const body = new Body(); body.applyToCamera(camera);
+
+  const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
+    input: cfg.input, gaze: cfg.gaze, endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.1' };
+  const logger = new Logger(meta);
+  logger.layout = { placements: L.placements, counterY: 0.91 };
+  logger.task = taskDef;
+  const monitor = new TaskMonitor(world, L.task, taskDef, cfg);
+
+  // ---- inputs ----
+  let input = null, vision = null, xrHands = null, autopilot = null, webcamHands = null;
+  if (cfg.input === 'mouse') input = new MouseInput(canvas, camera, world, hands, manip, body);
+  if (cfg.input === 'autopilot') { autopilot = new Autopilot(world, L.task, hands, manip, body, camera, cfg.seed); autopilot.speed = cfg.speed; }
+  if (cfg.input === 'webcam' || cfg.gaze === 'webcam') {
+    vision = new Vision($('#cam'));
+    toast('Starting camera…', 4000);
+    meta.camera = await vision.start({ hands: cfg.input === 'webcam', face: cfg.gaze === 'webcam' });
+  }
+  if (cfg.input === 'webcam') webcamHands = new WebcamHands(vision, hands, body, world.bus);
+  if (cfg.input === 'xr') xrHands = new XRHands(renderer, scene, hands, world.bus);
+
+  // ---- gaze ----
+  const gaze = new Gaze(world, camera, cfg, taskDef.thresholds);
+  let webcamGaze = null;
+  if (cfg.gaze === 'mouse' && input) gaze.setProvider(new MouseGaze(input));
+  if (cfg.gaze === 'socket') gaze.setProvider(new SocketGaze(cfg.socket, world.bus));
+  if (cfg.gaze === 'webcam') { webcamGaze = new WebcamGaze(vision, world.bus); gaze.setProvider(webcamGaze); }
+  if (cfg.gaze === 'autopilot' && autopilot) gaze.setProvider(autopilot.gazeProvider());
+  const aoiBuf = cfg.saliency && cfg.input !== 'xr' ? new AOIBuffer(renderer, scene, camera, world) : null;
+
+  // ---- bus -> log ----
+  const NOLOG = new Set(['settled']);
+  const clean = p => JSON.parse(JSON.stringify(p, (k, v) => (v && v.isVector3 ? v.toArray() : v && typeof v === 'object' && v.root ? v.id : v)));
+  world.bus.on('*', (type, p) => {
+    if (!logger.recording && type !== 'calibration') return;
+    if (type === 'settled') { logger.event('settled', { obj: p.entity.id, on: p.on, y: +p.y.toFixed(4), t: world.clockT }); return; }
+    if (NOLOG.has(type)) return;
+    logger.event(type, { ...clean(p), t: p.t ?? world.clockT });
+  });
+
+  // ---- rendering ----
+  let composer = null;
+  if (cfg.quality && cfg.input !== 'xr' && !params.get('fast')) {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const ao = new GTAOPass(scene, camera, innerWidth, innerHeight); ao.blendIntensity = 0.85; ao.updateGtaoMaterial({ radius: 0.12, distanceFallOff: 1, thickness: 1 }); composer.addPass(ao);
+    composer.addPass(new OutputPass());
+  }
+  addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer?.setSize(innerWidth, innerHeight); });
+
+  // ---- HUD ----
+  $('#hud').hidden = false;
+  $('#instruction').textContent = taskDef.instructions[cfg.condition] || taskDef.instructions.standard;
+
+  // ---- calibration, then start ----
+  if (webcamHands) await webcamHands.calibrate($('#instruction'));
+  if (webcamGaze) {
+    try { const r = await webcamGaze.calibrate($('#calib'), $('#calib-dot'), $('#calib-msg')); toast(`Gaze calibrated: ~${r.approxDeg}° median error`, 3500); }
+    catch (e) { toast('Gaze calibration failed: ' + e.message, 5000); }
+  }
+  if (cfg.input === 'xr') {
+    const b = document.createElement('button'); b.textContent = 'Enter headset'; Object.assign(b.style, { position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', zIndex: 30 });
+    document.body.appendChild(b);
+    await new Promise(res => b.onclick = async () => { try { await XRHands.enter(renderer); b.remove(); res(); } catch (e) { alert(e.message); } });
+  }
+
+  let tTrial = null, ended = false, lastAOI = -1, lastFrame = -1, fpsN = 0, fpsT = 0, lastBackup = 0;
+  const begin = () => { logger.start(performance.now() / 1000); tTrial = 0; world.clockT = 0; logger.event('trial_start', { t: 0, instruction: $('#instruction').textContent }); };
+  setTimeout(begin, cfg.input === 'autopilot' ? 300 : 800);
+
+  world.bus.on('bell', () => { if (tTrial !== null && tTrial > 3 && !ended) endTrial(); });
+  function endTrial() {
+    ended = true;
+    logger.event('trial_end', { t: tTrial });
+    logger.stop();
+    const summary = monitor.summary(tTrial);
+    logger.summary = { ...summary, handPath: { L: hands[0].path, R: hands[1].path } };
+    logger.summary.quick = quickMetrics(logger, Object.keys(taskDef.task_objects));
+    logger.backup();
+    window.__log = logger;
+    if (renderer.xr.isPresenting) renderer.xr.getSession()?.end();
+    if (params.get('noreport') !== '1') setTimeout(() => renderReport($('#report'), logger, summary, hands, Object.keys(taskDef.task_objects), {
+      onDownload: () => logger.download(),
+      onUpload: () => logger.upload(cfg.endpoint),
+      onAgain: () => { const u = new URL(location.href); for (const [k, v] of Object.entries({ ...cfg, session: cfg.session + 1, seed: cfg.seed + 1 })) u.searchParams.set(k, v); u.searchParams.delete('auto'); location.href = u.toString(); },
+    }), 600);
+    window.__done = true;
+  }
+
+  const taskEntities = [...world.entities.values()].filter(e => e.role !== 'fixture' || e.constraint);
+  // ?fast=N runs N fixed 1/60 s simulation steps per rendered frame (autopilot / headless tests)
+  const simSteps = +(params.get('fast') || 0);
+  let lastT = performance.now(), frameNo = 0;
+  function step(dt, tms, simulated) {
+    const tAbs = performance.now() / 1000;
+    if (tTrial !== null && !ended) { tTrial = simulated ? tTrial + dt : logger.rel(tAbs); world.clockT = tTrial; }
+    const tt = world.clockT ?? 0;
+    if (vision) vision.poll(tms);
+    if (input) input.update(dt);
+    if (autopilot && tTrial !== null) autopilot.update(dt * (autopilot.speed || 1));
+    if (webcamHands) { body.update(dt); webcamHands.update(dt, tAbs); }
+    if (xrHands) xrHands.update(dt);
+    if (cfg.input !== 'xr') body.applyToCamera(camera);
+    manip.update(dt, hands, tt);
+    input?.postUpdate();
+    world.update(dt);
+    const cam = renderer.xr.isPresenting ? renderer.xr.getCamera() : camera;
+    gaze.camera = cam;
+    gaze.update(tt, renderer.xr.isPresenting);
+    if (logger.recording) {
+      if (tt - lastFrame >= 1 / 90 - 1e-6) { lastFrame = tt; logger.frame(tt, { camera: cam, body, gaze, hands, joints: cfg.input !== 'mouse' }); logger.objectPoses(tt, taskEntities); }
+      if (aoiBuf && tt - lastAOI >= 0.2) { lastAOI = tt; logger.aoi(tt, aoiBuf.capture()); }
+      if (tt - lastBackup > 15) { lastBackup = tt; logger.backup(); }
+    }
+    if (autopilot && autopilot.done && !ended && tTrial > 3) endTrial();
+  }
+  renderer.setAnimationLoop((tms) => {
+    const now = performance.now(), dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    try {
+      if (simSteps) { for (let k = 0; k < simSteps && !ended; k++) step(1 / 60, tms, true); }
+      else step(dt, tms, false);
+    } catch (err) { window.__errors = (window.__errors || []); if (window.__errors.length < 5) { window.__errors.push(String(err.stack || err)); console.error(err); } }
+    rigs.forEach((r, i) => r.update(hands[i]));
+    fpsN++; fpsT += dt; if (fpsT > 0.5) { $('#fps').textContent = `${Math.round(fpsN / fpsT)} fps`; fpsN = 0; fpsT = 0; }
+    if (input) { const h = hands[input.active]; $('#hand-ind').textContent = `${h.side === 'L' ? 'left' : 'right'} hand${h.holding ? ` · holding ${h.holding.id}` : h.hover ? ` · ${h.hover.id}` : ''}`; }
+    frameNo++;
+    if (simSteps && frameNo % 20 !== 1 && !ended) return; // fast mode: simulate, render occasionally
+    if (composer && !renderer.xr.isPresenting) composer.render(); else renderer.render(scene, camera);
+  });
+  window.__sandwich = { ...window.__sandwich, hands, manip, logger, monitor, L, kitchen, autopilot, gaze, body, endTrial };
+}
