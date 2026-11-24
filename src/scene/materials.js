@@ -237,7 +237,7 @@ export function buildMaterials(manifest) {
   M.fridgeInner = new THREE.MeshStandardMaterial({ color: 0xf6f7f8, roughness: 0.5 });
   M.glassShelf = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.95, roughness: 0.05, thickness: 0.005, ior: 1.5 });
   M.ceramic = new THREE.MeshPhysicalMaterial({ color: 0xf7f6f2, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.08 });
-  M.plateGlaze = new THREE.MeshPhysicalMaterial({ color: 0x4a6a8c, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.06, sheen: 0.2 });   // blue stoneware: reads against the pale counter and the bread
+  M.plateGlaze = new THREE.MeshPhysicalMaterial({ color: 0x4a6a8c, roughness: 0.34, clearcoat: 0.8, clearcoatRoughness: 0.15, sheen: 0.2, side: THREE.DoubleSide });   // lathe winding faces inward: draw (and ray-hit) both sides   // blue stoneware: reads against the pale counter and the bread
   M.plateRim = new THREE.MeshPhysicalMaterial({ color: 0xe9dfcb, roughness: 0.5 });
   M.ceramicRim = new THREE.MeshPhysicalMaterial({ color: 0x2f4a6b, roughness: 0.25, clearcoat: 1 });
   M.windowView = new THREE.MeshBasicMaterial({ map: windowView(), color: new THREE.Color(0xffffff).multiplyScalar(2.2) });
