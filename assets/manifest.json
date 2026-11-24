@@ -90,6 +90,39 @@
    ],
    "bytes": 610846
   },
+  "food_pears_asian_01": {
+   "file": "models/food_pears_asian_01/food_pears_asian_01_1k.gltf",
+   "name": "Pears Asian 01",
+   "authors": [
+    "Amal Kumar"
+   ],
+   "bytes": 1724117
+  },
+  "food_ginger_01": {
+   "file": "models/food_ginger_01/food_ginger_01_1k.gltf",
+   "name": "Food Ginger 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 586792
+  },
+  "food_lychee_01": {
+   "file": "models/food_lychee_01/food_lychee_01_1k.gltf",
+   "name": "Food Lychee 01",
+   "authors": [
+    "Oliver Harries"
+   ],
+   "bytes": 771793
+  },
+  "carrot_cake": {
+   "file": "models/carrot_cake/carrot_cake_1k.gltf",
+   "name": "Carrot Cake",
+   "authors": [
+    "Greg Zaal",
+    "James Ray Cock"
+   ],
+   "bytes": 3362843
+  },
   "wooden_cutting_board": {
    "file": "models/wooden_cutting_board/wooden_cutting_board_1k.gltf",
    "name": "Wooden Cutting Board",
@@ -188,6 +221,30 @@
     "Rico Cilliers"
    ],
    "bytes": 1615932
+  },
+  "wooden_bowl_02": {
+   "file": "models/wooden_bowl_02/wooden_bowl_02_1k.gltf",
+   "name": "Wooden Bowl 02",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 2511366
+  },
+  "carved_wooden_plate": {
+   "file": "models/carved_wooden_plate/carved_wooden_plate_1k.gltf",
+   "name": "Carved Wooden Plate",
+   "authors": [
+    "Jan Martens"
+   ],
+   "bytes": 1564238
+  },
+  "russian_food_cans_01": {
+   "file": "models/russian_food_cans_01/russian_food_cans_01_1k.gltf",
+   "name": "Russian Food Cans 01",
+   "authors": [
+    "Kosan Aziz"
+   ],
+   "bytes": 1501900
   },
   "potted_plant_04": {
    "file": "models/potted_plant_04/potted_plant_04_1k.gltf",

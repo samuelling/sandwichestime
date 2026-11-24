@@ -21,6 +21,8 @@ const D = [
   { m: 'yellow_onion', zone: 'counter' }, { m: 'food_avocado_01', zone: 'counter' }, { m: 'croissant', zone: 'counter' },
   { m: 'hamburger_buns', zone: 'counter', node: 'hamburger_buns_01' }, { m: 'food_kiwi_01', zone: 'counter' },
   { m: 'food_lime_01', zone: 'counter' }, { m: 'food_pomegranate_01', zone: 'counter' }, { m: 'sweet_potato', zone: 'counter' },
+  { m: 'food_pears_asian_01', zone: 'counter', node: 'food_pears_asian_01_a' }, { m: 'food_ginger_01', zone: 'counter', fit: 0.11 }, { m: 'carrot_cake', zone: 'counterBack' },
+  { m: 'carved_wooden_plate', zone: 'counter' },   // a second plate-like object: a lure for "plate"
   { m: 'wooden_cutting_board', zone: 'counter' }, { m: 'wooden_spoon', zone: 'counter' }, { m: 'jug_01', zone: 'counter' },
   { m: 'wicker_basket_01', zone: 'counter' },
   // appliance-adjacent
@@ -31,6 +33,8 @@ const D = [
   { m: 'tea_set_01', node: 'tea_set_01_teapot_01', zone: 'shelf0' }, { m: 'tea_set_01', node: 'tea_set_01_cup_small_01', zone: 'shelf0' },
   { m: 'tea_set_01', node: 'tea_set_01_sugar_cup_01', zone: 'shelf0' },
   { m: 'wine_bottles_01', node: 'wine_bottles_01_bordeaux', zone: 'shelf1' }, { m: 'wine_bottles_01', node: 'wine_bottles_01_alsace', zone: 'shelf1' },
+  { m: 'wooden_bowl_02', zone: 'shelf1' }, { m: 'russian_food_cans_01', node: 'russian_food_cans_01_can_cond', zone: 'shelf0' }, { m: 'russian_food_cans_01', node: 'russian_food_cans_01_salt_box', zone: 'shelf1' },
+  { m: 'food_lychee_01', zone: 'fridge2', tag: 'fridge' }, { m: 'food_pears_asian_01', node: 'food_pears_asian_01_b', zone: 'fridge1', tag: 'fridge' },
   // fridge contents
   { m: 'wine_bottles_01', node: 'wine_bottles_01_champagne', zone: 'fridge0', tag: 'fridge' }, { m: 'lemon', zone: 'fridge1', tag: 'fridge' },
   { m: 'food_lime_01', zone: 'fridge2', tag: 'fridge' }, { m: 'food_kiwi_01', zone: 'fridge2', tag: 'fridge' },
@@ -154,6 +158,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
       counts[d.m] = (counts[d.m] || 0) + 1;
       const id = d.node ? d.node : (counts[d.m] > 1 ? `${d.m}_${counts[d.m]}` : d.m);
       if (d.scale) wrap.scale.setScalar(d.scale);
+      if (d.fit) { const sz = b.getSize(new THREE.Vector3()); wrap.scale.setScalar(d.fit / Math.max(sz.x, sz.y, sz.z)); }
       const ent = new Entity(id, wrap, { kind: d.m, role: 'distractor', aoi: id, footprint: bboxFootprint(wrap) });
       ent.restOffset = 0;
       if (!packed(ent, d.zone) && !packed(ent, 'counterBack') && !packed(ent, 'counter')) { placements.push({ id, kind: d.m, role: 'distractor', region: 'unplaced' }); }

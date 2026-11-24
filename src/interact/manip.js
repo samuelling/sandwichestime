@@ -49,30 +49,36 @@ export class Manipulator {
   emit(type, p) { this.bus.emit(type, p); }
 
   // ---------------- grasp selection ----------------
-  candidates(hand) {
+  candidates(point, hand) {
     const out = [];
     for (const e of this.world.entities.values()) {
       if (!e.grabbable || (e.heldBy && e.heldBy !== hand)) continue;
       if (e.role === 'fixture' && !e.constraint) continue;
-      if (!e.constraint) { e.root.getWorldPosition(_v); if (_v.distanceTo(hand.grip) > 0.9) continue; } // doors pivot at floor level
+      if (!e.constraint) { e.root.getWorldPosition(_v); if (_v.distanceTo(point) > 0.9) continue; } // doors pivot at floor level
       out.push(e);
     }
     return out;
   }
-  nearest(hand) {
-    // within grasp range, prefer the smaller object (a slice inside the bag, the lid on the jar, the knife on the towel)
+  nearest(hand) { return this.nearestTo(hand.grip, hand); }
+  // Within `radius` of a point, prefer the smaller object (a slice inside the bag, the lid on the jar, the clip on the bag).
+  nearestTo(point, hand, radius = this.th.grasp_radius_m) {
     let best = null, bs = Infinity;
-    const R = this.th.grasp_radius_m;
-    for (const e of this.candidates(hand)) {
-      const { d, vol } = ownDistance(e, hand.grip);
-      if (!(d <= R)) continue;
+    for (const e of this.candidates(point, hand)) {
+      const { d, vol } = ownDistance(e, point);
+      if (!(d <= radius)) continue;
       const score = d + 0.15 * Math.cbrt(Math.max(1e-9, vol));
       if (score < bs) { bs = score; best = e; }
     }
     return best;
   }
-  resolve(ent) {
+  resolve(ent, hand) {
     if (!ent) return null;
+    // pointing at the open half of an open bag means "take a slice"; the closed half moves the bag
+    if (ent.kind === 'bread_bag' && ent.state.open && ent.state.slices.length && hand?.pickPoint) {
+      const top = ent.state.slices.reduce((a, b) => (b.state.index > a.state.index ? b : a));
+      const lx = ent.root.worldToLocal(_v.copy(hand.pickPoint)).x;
+      if (lx > top.root.position.x - 0.07) return top;
+    }
     if (ent.kind === 'slice' && ent.state.inBag) {
       const bag = ent.state.bag;
       if (!bag.state.open) return bag;
@@ -89,7 +95,7 @@ export class Manipulator {
   tryGrasp(hand) {
     let ent = hand.pickHint && hand.pickHint.grabbable !== false ? hand.pickHint : this.nearest(hand);
     if (hand.pickHint && hand.pickHint.root.getWorldPosition(_v).distanceTo(hand.grip) > 0.35) ent = this.nearest(hand);
-    ent = this.resolve(ent);
+    ent = this.resolve(ent, hand.pickHint ? hand : null);
     const base = { hand: hand.side, t: this.t, pos: hand.grip.toArray() };
     if (!ent || (ent.heldBy && ent.heldBy !== hand)) { this.emit('grasp_miss', { ...base, near: hand.pickHint?.id || null }); return; }
     const info = { ...base, obj: ent.id, kind: ent.kind, role: ent.role, from: ent.restingOn };
@@ -103,7 +109,9 @@ export class Manipulator {
       return;
     }
     if (ent.kind.endsWith('_lid') && ent.state.onJar) { // seated lid: twist to open
-      hand.hold = { ent, mode: 'twist', q0: hand.quat.clone(), prev: 0, acc: 0, twist0: hand.twist || 0, open0: ent.state.openness ?? 0, p0: hand.grip.clone() };
+      // pointing modes: the hand goes onto the lid; headset: it is already there
+      const p0 = hand.pickHint ? ent.root.getWorldPosition(new THREE.Vector3()).add(_v.set(0, ent.geom.h + 0.004, 0)) : hand.grip.clone();
+      hand.hold = { ent, mode: 'twist', q0: hand.quat.clone(), prev: 0, acc: 0, twist0: hand.twist || 0, open0: ent.state.openness ?? 0, p0 };
       hand.holding = ent; ent.heldBy = hand;
       this.emit('grasp', { ...info, constraint: 'twist', openness: ent.state.openness ?? 0 });
       return;
@@ -152,7 +160,7 @@ export class Manipulator {
       if (!h.pinch && h._wasPinch && h.holding) this.release(h);
       h._wasPinch = h.pinch;
       if (h.holding) this.updateHold(h, dt);
-      else h.hover = this.resolve(h.pickHint || null);
+      else h.hover = this.resolve(h.pickHint || (this.mode === 'rigid' ? this.nearest(h) : null), h.pickHint ? h : null);
     }
   }
 
@@ -175,7 +183,7 @@ export class Manipulator {
       const lid = ent, jar = lid.state.onJar;
       _q.copy(hand.quat).multiply(_q2.copy(H.q0).invert());
       const tw = twistY(_q); H.acc += wrap(tw - H.prev); H.prev = tw;
-      const turns = (H.acc + (hand.twist || 0) - H.twist0) / (2 * Math.PI);
+      const turns = (H.acc * (hand.twistGain || 1) + (hand.twist || 0) - H.twist0) / (2 * Math.PI);
       const thr = this.th.lid_turns_to_open;
       lid.state.openness = THREE.MathUtils.clamp(H.open0 + turns, 0, thr);
       lid.root.rotation.y = lid.state.openness * Math.PI * 2;

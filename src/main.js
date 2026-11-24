@@ -14,6 +14,9 @@ import { Manipulator } from './interact/manip.js';
 import { MouseInput, Body } from './interact/mouse.js';
 import { Vision } from './interact/vision.js';
 import { WebcamHands } from './interact/webcam.js';
+import { Reacher } from './interact/reach.js';
+import { CamPreview } from './ui/campreview.js';
+import { GraspAids } from './ui/aids.js';
 import { XRHands } from './interact/xr.js';
 import { Autopilot } from './interact/autopilot.js';
 import { Gaze, MouseGaze, SocketGaze, WebcamGaze } from './gaze/gaze.js';
@@ -41,8 +44,8 @@ async function start(cfg) {
   $('#landing').hidden = true;
   const canvas = $('#view');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(params.get('fast') ? 0.5 : Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
-  renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.setPixelRatio(+params.get('pr') || (params.get('fast') ? 0.5 : Math.min(devicePixelRatio, 2))); renderer.setSize(innerWidth, innerHeight);
+  renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.15;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.xr.enabled = cfg.input === 'xr';
   setMaxAnisotropy(renderer.capabilities.getMaxAnisotropy());
@@ -55,18 +58,25 @@ async function start(cfg) {
   const M = buildMaterials(manifest); world.M = M;
   const pmrem = new THREE.PMREMGenerator(renderer);
   const hdr = await new HDRLoader().loadAsync('assets/' + manifest.hdri.lythwood_room);
-  scene.environment = pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity = 0.5; hdr.dispose();
+  scene.environment = pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity = 0.45; hdr.dispose();
   const kitchen = buildKitchen(world, M);
   const L = await buildLayout(world, kitchen, M, manifest, cfg);
+  // Reflections of this room, not of the HDRI's: capture the lit kitchen from the work area and use that as the environment.
+  if (params.get('roomenv') !== '0') {
+    scene.updateMatrixWorld(true);
+    const roomEnv = pmrem.fromScene(scene, 0, 0.05, 14, { size: 256, position: new THREE.Vector3(0, 1.3, -0.12) });
+    scene.environment = roomEnv.texture; scene.environmentIntensity = 0.9;
+  }
+  pmrem.dispose();
 
   // hands
   const hands = [new Hand('L'), new Hand('R')];
-  const rigs = hands.map(h => new HandRig(scene, h.side));
+  const rigs = hands.map(h => new HandRig(scene, h.side, { tone: cfg.handtone }));
   const manip = new Manipulator(world, L.task, cfg, taskDef);
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.1' };
+    input: cfg.input, gaze: cfg.gaze, endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.2' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;
@@ -77,12 +87,21 @@ async function start(cfg) {
   if (cfg.input === 'mouse') input = new MouseInput(canvas, camera, world, hands, manip, body);
   if (cfg.input === 'autopilot') { autopilot = new Autopilot(world, L.task, hands, manip, body, camera, cfg.seed); autopilot.speed = cfg.speed; }
   if (cfg.input === 'webcam' || cfg.gaze === 'webcam') {
-    vision = new Vision($('#cam'));
-    toast('Starting camera…', 4000);
-    meta.camera = await vision.start({ hands: cfg.input === 'webcam', face: cfg.gaze === 'webcam' });
+    if (params.get('fakecam') === '1') { vision = Vision.fake(); window.__fakeHands = r => { vision.handResult = r; vision.frameT = performance.now() / 1000; }; }
+    else {
+      vision = new Vision($('#cam'));
+      toast('Starting camera…', 6000);
+      meta.camera = await vision.start({ hands: cfg.input === 'webcam', face: cfg.gaze === 'webcam' });
+    }
   }
-  if (cfg.input === 'webcam') webcamHands = new WebcamHands(vision, hands, body, world.bus);
+  let preview = null;
+  if (cfg.input === 'webcam') {
+    webcamHands = new WebcamHands(vision, hands, body, world.bus, new Reacher(camera, world, manip, body));
+    if (params.get('preview') !== '0') preview = new CamPreview(vision, webcamHands);
+  }
   if (cfg.input === 'xr') xrHands = new XRHands(renderer, scene, hands, world.bus);
+  const aids = cfg.aids !== 'off' && cfg.input !== 'autopilot' ? new GraspAids(scene, world, hands, manip, camera) : null;
+  meta.aids = !!aids; meta.handtone = cfg.handtone || 'neutral';
 
   // ---- gaze ----
   const gaze = new Gaze(world, camera, cfg, taskDef.thresholds);
@@ -106,7 +125,9 @@ async function start(cfg) {
   // ---- rendering ----
   let composer = null;
   if (cfg.quality && cfg.input !== 'xr' && !params.get('fast')) {
-    composer = new EffectComposer(renderer);
+    // multisampled HDR target: without it the post-processing chain loses antialiasing
+    const pr = renderer.getPixelRatio();
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(innerWidth * pr, innerHeight * pr, { type: THREE.HalfFloatType, samples: 4 }));
     composer.addPass(new RenderPass(scene, camera));
     const ao = new GTAOPass(scene, camera, innerWidth, innerHeight); ao.blendIntensity = 0.85; ao.updateGtaoMaterial({ radius: 0.12, distanceFallOff: 1, thickness: 1 }); composer.addPass(ao);
     composer.addPass(new OutputPass());
@@ -115,23 +136,11 @@ async function start(cfg) {
 
   // ---- HUD ----
   $('#hud').hidden = false;
-  $('#instruction').textContent = taskDef.instructions[cfg.condition] || taskDef.instructions.standard;
-
-  // ---- calibration, then start ----
-  if (webcamHands) await webcamHands.calibrate($('#instruction'));
-  if (webcamGaze) {
-    try { const r = await webcamGaze.calibrate($('#calib'), $('#calib-dot'), $('#calib-msg')); toast(`Gaze calibrated: ~${r.approxDeg}° median error`, 3500); }
-    catch (e) { toast('Gaze calibration failed: ' + e.message, 5000); }
-  }
-  if (cfg.input === 'xr') {
-    const b = document.createElement('button'); b.textContent = 'Enter headset'; Object.assign(b.style, { position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', zIndex: 30 });
-    document.body.appendChild(b);
-    await new Promise(res => b.onclick = async () => { try { await XRHands.enter(renderer); b.remove(); res(); } catch (e) { alert(e.message); } });
-  }
+  const instruction = taskDef.instructions[cfg.condition] || taskDef.instructions.standard;
+  $('#instruction').textContent = instruction;
 
   let tTrial = null, ended = false, lastAOI = -1, lastFrame = -1, fpsN = 0, fpsT = 0, lastBackup = 0;
-  const begin = () => { logger.start(performance.now() / 1000); tTrial = 0; world.clockT = 0; logger.event('trial_start', { t: 0, instruction: $('#instruction').textContent }); };
-  setTimeout(begin, cfg.input === 'autopilot' ? 300 : 800);
+  const begin = () => { logger.start(performance.now() / 1000); tTrial = 0; world.clockT = 0; logger.event('trial_start', { t: 0, instruction }); };
 
   world.bus.on('bell', () => { if (tTrial !== null && tTrial > 3 && !ended) endTrial(); });
   function endTrial() {
@@ -185,12 +194,28 @@ async function start(cfg) {
       if (simSteps) { for (let k = 0; k < simSteps && !ended; k++) step(1 / 60, tms, true); }
       else step(dt, tms, false);
     } catch (err) { window.__errors = (window.__errors || []); if (window.__errors.length < 5) { window.__errors.push(String(err.stack || err)); console.error(err); } }
-    rigs.forEach((r, i) => r.update(hands[i]));
+    rigs.forEach((r, i) => r.update(hands[i], renderer.xr.isPresenting ? null : body.shoulder(hands[i].side)));
+    aids?.update(); preview?.update(now);
     fpsN++; fpsT += dt; if (fpsT > 0.5) { $('#fps').textContent = `${Math.round(fpsN / fpsT)} fps`; fpsN = 0; fpsT = 0; }
-    if (input) { const h = hands[input.active]; $('#hand-ind').textContent = `${h.side === 'L' ? 'left' : 'right'} hand${h.holding ? ` · holding ${h.holding.id}` : h.hover ? ` · ${h.hover.id}` : ''}`; }
+    if (input && !ended) { const h = hands[input.active]; $('#hand-ind').textContent = `${h.side === 'L' ? 'left' : 'right'} hand${h.holding ? ` · holding ${h.holding.id}` : h.hover ? ` · ${h.hover.id}` : ''}`; }
     frameNo++;
     if (simSteps && frameNo % 20 !== 1 && !ended) return; // fast mode: simulate, render occasionally
     if (composer && !renderer.xr.isPresenting) composer.render(); else renderer.render(scene, camera);
   });
-  window.__sandwich = { ...window.__sandwich, hands, manip, logger, monitor, L, kitchen, autopilot, gaze, body, endTrial };
+  // ---- calibration (with the scene already live), then start the trial ----
+  (async () => {
+    if (webcamHands) await webcamHands.calibrate(m => ($('#instruction').textContent = m), params.get('fakecam') === '1' ? 0.3 : 2.0);
+    if (webcamGaze) {
+      try { const r = await webcamGaze.calibrate($('#calib'), $('#calib-dot'), $('#calib-msg')); toast(`Gaze calibrated: ~${r.approxDeg}° median error`, 3500); }
+      catch (e) { toast('Gaze calibration failed: ' + e.message, 5000); }
+    }
+    if (cfg.input === 'xr') {
+      const b = document.createElement('button'); b.textContent = 'Enter headset'; Object.assign(b.style, { position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', zIndex: 30 });
+      document.body.appendChild(b);
+      await new Promise(res => b.onclick = async () => { try { await XRHands.enter(renderer); b.remove(); res(); } catch (e) { alert(e.message); } });
+    }
+    $('#instruction').textContent = instruction;
+    setTimeout(begin, cfg.input === 'autopilot' ? 300 : 800);
+  })();
+  window.__sandwich = { ...window.__sandwich, webcamHands, vision, hands, manip, logger, monitor, L, kitchen, autopilot, gaze, body, endTrial };
 }

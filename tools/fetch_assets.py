@@ -21,11 +21,13 @@ MODELS = {
     "food_avocado_01": "1k", "croissant": "1k", "hamburger_buns": "1k",
     "food_kiwi_01": "1k", "food_lime_01": "1k", "sweet_potato": "1k",
     "food_pomegranate_01": "1k",
+    "food_pears_asian_01": "1k", "food_ginger_01": "1k", "food_lychee_01": "1k", "carrot_cake": "1k",
     # kitchenware distractors
     "wooden_cutting_board": "1k", "wooden_bowl_01": "1k", "wooden_spoon": "1k",
     "jug_01": "1k", "tea_set_01": "1k", "vintage_electric_kettle": "1k",
     "wine_bottles_01": "1k", "wicker_basket_01": "1k", "multi_cleaner_bottle": "1k",
     "ceramic_vase_01": "1k", "pot_enamel_01": "1k", "brass_pan_01": "1k",
+    "wooden_bowl_02": "1k", "carved_wooden_plate": "1k", "russian_food_cans_01": "1k",
     # decor / appliances
     "potted_plant_04": "1k", "potted_plant_01": "1k", "wall_clock": "1k",
     "bar_chair_round_01": "1k",

@@ -69,7 +69,7 @@ strategy *is* for each layout, so strategy choice can be studied directly.
 **Sources.**
 
 * *Headset*: the head ray, since WebXR exposes no standard eye gaze.
-* *Webcam iris*: MediaPipe FaceLandmarker. Features are iris offsets plus head
+* *Webcam iris* (untested on a person): MediaPipe FaceLandmarker. Features are iris offsets plus head
   pose, mapped to the screen by a 2nd-order polynomial ridge regression, with
   9-point calibration and 5-point validation (median error is logged).
 * *External tracker*: EyeLink, Tobii or Pupil, streamed over WebSocket.
@@ -142,21 +142,81 @@ and model recovery before any real data are trusted.
   specificity.
 * Every placement comes from a seed and is written to the log.
 
-## Known limitations (v0.1)
+## Hands
+
+Every input source produces the same thing: 21 hand landmarks in world space, a
+grip point, a pinch state and a hand frame. `HandRig` turns the landmarks into a
+skinned hand (the 25-bone WebXR generic-hand mesh). Landmarks carry positions
+only, so each bone's orientation is built from the bone direction plus a palm
+reference axis, and that construction is calibrated once against the mesh's
+bind pose. In a headset the runtime's own joint poses are copied directly.
+
+## Webcam control
+
+A single webcam measures the image plane well and depth poorly, and the task
+lives on a horizontal counter. So the precise axes go where precision matters.
+
+| what the participant does | what happens |
+|---|---|
+| moves a hand in the image | the virtual hand goes to whatever a ray through that screen position lands on: left/right and near/far on the counter, or up onto shelves and handles |
+| pinches thumb and index | grasps what the hand is on (the ray is refined to the smallest graspable thing there: the clip on the bag, the lid on the jar) |
+| moves the hand toward the camera | lowers what it holds. Objects are carried 7 cm up; about 15% closer presses down, and pulling back lifts higher |
+| rotates the hand in the image | turns the held object; unscrews a lid, with a 2.5× gain so two strokes open it |
+| turns the hand over | flips a slice |
+| holds a hand at the screen edge | steps sideways |
+
+Put another way, the participant's hands act on a copy of the counter that
+stands upright in front of the webcam: up is away from the body, and toward the
+camera is down. Hand shape comes from MediaPipe's metric landmarks, rotated by
+that same tilt.
+
+Details that matter in practice:
+
+* **Depth** is the ratio of image size to metric size pooled over all bones, so
+  it does not change when the fingers curl or the palm tilts.
+* **Left and right** are kept apart by position continuity, because MediaPipe's
+  handedness label flickers.
+* **Dropouts** shorter than 0.6 s freeze the hand and keep its grasp; longer
+  ones release.
+* **Occlusion**: a hand can only go to what the participant can see. Something
+  hidden behind a taller object has to be approached from a visible part.
+* The first slice out of the bag is the heel, as in a real loaf.
+
+`tools/test_controls.py synthetic` drives this whole path with generated
+landmarks and checks grasping, carrying, pressing, flipping, dropouts,
+unscrewing and stepping.
+
+## Grasp aids
+
+A ring on the surface under each hand: small when idle (it grows with the hand's
+height), wrapped around the base of the object about to be grasped, and marking
+the landing spot while carrying. These are extra visual cues that the original
+task did not have, so they are optional and recorded in `meta.aids`. Turn them
+off for sessions where gaze is the measure of interest, or treat them as a
+factor.
+
+## Known limitations (v0.2)
 
 * Physics is light. Objects settle onto the highest support under their
   footprint, but nothing collides while it is held, and an object set down on
   top of a non-support object (a spoon) interpenetrates it.
 * In mouse and webcam modes, held objects stay upright (yaw follows the hand,
-  and a wrist roll or F flips slices). Only WebXR gives full 6-DoF holding.
-* Webcam hand depth comes from apparent hand size, after a near/far calibration.
-  It is fine for piloting but noisier than a headset.
+  and turning the hand over flips slices). Only WebXR gives full 6-DoF holding.
+* Webcam control has been tested with synthetic landmarks and with a still
+  photo fed in as a camera, not yet with a person making a sandwich. Gains and
+  thresholds (`CARRY`, `LIFT_GAIN`, pinch distances in `src/interact/webcam.js`)
+  are first guesses.
+* The headset path (direct joint poses onto the hand mesh) is untested on a
+  device.
 * WebXR has no standard eye gaze, so headset sessions use the head ray. Eye gaze
   in a headset needs a vendor bridge, or an external tracker streaming into the
   socket source.
+* Hands are not gaze AOIs: gaze passes through them to the object behind.
 * The planner minimises summed effort, not makespan.
 * Cutting is detected only as a stroke across a stacked sandwich; it is not
   rendered as a split.
+* Layouts changed between v0.1 and v0.2 (more props), so a seed gives a
+  different arrangement than before. Each log records its own layout.
 
 ## References
 

@@ -36,6 +36,16 @@ function box(w, h, d, mat, x, y, z, { uvScale = null, rounded = 0 } = {}) {
 }
 const boxSpan = (x0, x1, y0, y1, z0, z1, mat, o) => box(x1 - x0, y1 - y0, z1 - z0, mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, o);
 
+// Shaker-style door: recessed centre panel inside a frame of stiles and rails.
+export function shaker(x0, x1, y0, y1, z0, z1, mat, rail = 0.058) {
+  const g = new THREE.Group(), zp = z1 - 0.007;
+  g.add(boxSpan(x0 + rail - 0.002, x1 - rail + 0.002, y0 + rail - 0.002, y1 - rail + 0.002, z0, zp, mat));
+  g.add(boxSpan(x0, x0 + rail, y0, y1, z0, z1, mat, { rounded: 0.0025 }), boxSpan(x1 - rail, x1, y0, y1, z0, z1, mat, { rounded: 0.0025 }));
+  g.add(boxSpan(x0 + rail, x1 - rail, y0, y0 + rail, z0, z1, mat, { rounded: 0.0025 }), boxSpan(x0 + rail, x1 - rail, y1 - rail, y1, z0, z1, mat, { rounded: 0.0025 }));
+  // small bevel strip around the panel so the recess catches light
+  return g;
+}
+
 function barHandle(M, len = 0.16, vertical = false) {
   const g = new THREE.Group();
   const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, len, 16), M.brass);
@@ -73,7 +83,7 @@ export function buildKitchen(world, M) {
   floor.receiveShadow = true;
   const ceilGeo = new THREE.PlaneGeometry(K.roomX1 - K.roomX0, K.roomZ1 - K.counterBack);
   ceilGeo.rotateX(Math.PI / 2); ceilGeo.translate((K.roomX0 + K.roomX1) / 2, K.ceiling, (K.roomZ1 + K.counterBack) / 2);
-  fixture(new THREE.Mesh(ceilGeo, M.ceiling), 'ceiling');
+  const ceilMesh = new THREE.Mesh(ceilGeo, M.ceiling); ceilMesh.castShadow = true; fixture(ceilMesh, 'ceiling');
 
   // back wall with window opening
   const W = K.window;
@@ -107,10 +117,10 @@ export function buildKitchen(world, M) {
 
   // ---- tile backsplash (wraps under the window) ----
   const bs = new THREE.Shape([[K.xMin, Y], [K.xMax, Y], [K.xMax, 1.45], [W.x1, 1.45], [W.x1, W.y0], [W.x0, W.y0], [W.x0, 1.45], [K.xMin, 1.45]].map(p => new THREE.Vector2(...p)));
-  const bsGeo = new THREE.ShapeGeometry(bs); worldUV(bsGeo, 0.45);
+  const bsGeo = new THREE.ShapeGeometry(bs); worldUV(bsGeo, 1 / 0.6);
   const splash = new THREE.Mesh(bsGeo, M.tiles); splash.position.z = K.counterBack + 0.004; fixture(splash, 'backsplash');
   // behind the cooktop the tiles run up to the hood
-  const bs2 = boxSpan(K.cooktop.x0 - 0.06, K.cooktop.x1 + 0.06, 1.45, 1.95, K.counterBack, K.counterBack + 0.006, M.tiles, { uvScale: 0.45 }); fixture(bs2, 'backsplash');
+  const bs2 = boxSpan(K.cooktop.x0 - 0.06, K.cooktop.x1 + 0.06, 1.45, 1.95, K.counterBack, K.counterBack + 0.006, M.tiles, { uvScale: 1 / 0.6 }); fixture(bs2, 'backsplash');
 
   // ---- base cabinets ----
   const zf = -0.02; // cabinet face plane
@@ -129,7 +139,7 @@ export function buildKitchen(world, M) {
     const nDoors = (x1 - x0) > 0.62 ? 2 : 1;
     for (let k = 0; k < nDoors; k++) {
       const a = x0 + (x1 - x0) * k / nDoors, b = x0 + (x1 - x0) * (k + 1) / nDoors;
-      fixture(front(a, b, 0.11, dBot), 'cabinet');
+      fixture(shaker(a + gap, b - gap, 0.11 + gap, dBot - gap, zf - 0.019, zf, M.cabinet), 'cabinet');
       const h = barHandle(M, 0.14, true); h.position.set(nDoors === 2 ? (k === 0 ? b - 0.04 : a + 0.04) : b - 0.04, dBot - 0.1, zf); room.add(h);
     }
   });
@@ -200,10 +210,14 @@ export function buildKitchen(world, M) {
   for (const y of K.shelves) {
     const s = boxSpan(K.shelfX[0], K.shelfX[1], y - 0.03, y, K.counterBack, K.counterBack + K.shelfDepth, M.oakShelf);
     fixture(s, 'shelf', true); shelfMeshes.push(s);
-    for (const x of [K.shelfX[0] + 0.12, K.shelfX[1] - 0.12]) room.add(boxSpan(x - 0.012, x + 0.012, y - 0.16, y - 0.03, K.counterBack, K.counterBack + 0.18, M.brass));
+    for (const x of [K.shelfX[0] + 0.12, K.shelfX[1] - 0.12]) {   // slim brass L-brackets
+      room.add(boxSpan(x - 0.009, x + 0.009, y - 0.17, y - 0.03, K.counterBack + 0.004, K.counterBack + 0.010, M.brass));
+      room.add(boxSpan(x - 0.009, x + 0.009, y - 0.036, y - 0.03, K.counterBack + 0.004, K.counterBack + K.shelfDepth - 0.03, M.brass));
+      const brace = boxSpan(-0.004, 0.004, -0.085, 0.085, -0.003, 0.003, M.brass); brace.position.set(x, y - 0.095, K.counterBack + 0.068); brace.rotation.x = -Math.PI / 4; room.add(brace);
+    }
   }
   // under-shelf light strip (warm)
-  const strip = new THREE.Mesh(new THREE.BoxGeometry(K.shelfX[1] - K.shelfX[0] - 0.1, 0.004, 0.012), new THREE.MeshBasicMaterial({ color: 0xffe2b8 }));
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(K.shelfX[1] - K.shelfX[0] - 0.1, 0.004, 0.012), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffe2b8).multiplyScalar(6) }));
   strip.position.set((K.shelfX[0] + K.shelfX[1]) / 2, K.shelves[0] - 0.032, K.counterBack + 0.2); strip.userData.noAOI = true; room.add(strip);
 
   // ---- upper cupboard with working door ----
@@ -220,7 +234,7 @@ export function buildKitchen(world, M) {
     fixture(cab, 'cupboard');
     world.addSupport(cbottom, null); world.addSupport(cshelf, null);
     const pivot = new THREE.Group(); pivot.position.set(U.x0, 0, zc - 0.02);
-    const door = boxSpan(0.003, U.x1 - U.x0 - 0.003, U.y0 + 0.003, U.y1 - 0.003, 0, 0.019, M.cabinet, { rounded: 0.003 });
+    const door = shaker(0.003, U.x1 - U.x0 - 0.003, U.y0 + 0.003, U.y1 - 0.003, 0, 0.019, M.cabinet);
     pivot.add(door);
     const h = barHandle(M, 0.14, true); h.position.set(U.x1 - U.x0 - 0.04, U.y0 + 0.1, 0.019); pivot.add(h);
     const ent = new Entity('cupboard_door', pivot, { kind: 'door', role: 'fixture', aoi: 'cupboard', settle: 'none' });
@@ -271,23 +285,25 @@ export function buildKitchen(world, M) {
 
   // ---- lights ----
   const lights = new THREE.Group(); scene.add(lights);
-  const sun = new THREE.DirectionalLight(0xfff1dc, 3.2);
-  sun.position.set(2.4, 3.6, -3.6); sun.target.position.set(0.6, 0.6, 0.6);
+  // Sun: enters only through the window (walls and ceiling cast shadows) and lays a patch of light across the counter.
+  const sun = new THREE.DirectionalLight(0xfff0d8, 4.2);
+  sun.position.set(3.05, 4.36, -2.3); sun.target.position.set(0.6, Y, -0.3);
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -2.2, right: 2.2, top: 2.2, bottom: -2.2, near: 0.5, far: 9 });
-  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02; sun.shadow.radius = 4;
+  Object.assign(sun.shadow.camera, { left: -2.4, right: 2.4, top: 2.4, bottom: -2.4, near: 0.5, far: 10 });
+  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.015; sun.shadow.radius = 3;
   lights.add(sun, sun.target);
   const spots = [];
-  for (const [x, cast] of [[-1.0, false], [0.0, true], [1.0, false]]) {
-    const s = new THREE.SpotLight(0xfff0d8, 9, 4, 0.75, 0.65, 2);
-    s.position.set(x, K.ceiling - 0.02, -0.05); s.target.position.set(x, 0, -0.3);
-    if (cast) { s.castShadow = true; s.shadow.mapSize.set(1024, 1024); s.shadow.bias = -0.0003; s.shadow.radius = 6; s.shadow.camera.near = 0.3; }
+  for (const x of [-1.0, 0.0, 1.0]) {
+    const s = new THREE.SpotLight(0xffeccf, 13, 4.2, 0.78, 0.7, 2);
+    s.position.set(x, K.ceiling - 0.02, -0.05); s.target.position.set(x, 0, -0.32);
+    s.castShadow = true; s.shadow.mapSize.set(1024, 1024); s.shadow.bias = -0.0004; s.shadow.normalBias = 0.01; s.shadow.radius = 5; s.shadow.camera.near = 0.3; s.shadow.camera.far = 4.5;
     lights.add(s, s.target); spots.push(s);
-    const can = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.01, 24), new THREE.MeshBasicMaterial({ color: 0xfff7e8 }));
+    const can = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.01, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xfff7e8).multiplyScalar(10) }));
     can.position.set(x, K.ceiling - 0.004, -0.05); can.userData.noAOI = true; room.add(can);
+    const trim = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.006, 8, 32), M.windowFrame); trim.rotation.x = Math.PI / 2; trim.position.copy(can.position); trim.userData.noAOI = true; room.add(trim);
   }
-  const fill = new THREE.HemisphereLight(0xf3efe8, 0x7a6a58, 0.35); lights.add(fill);
-  const underShelf = new THREE.PointLight(0xffd9a8, 0.6, 1.4, 2); underShelf.position.set(0.08, K.shelves[0] - 0.06, K.counterBack + 0.18); lights.add(underShelf);
+  const fill = new THREE.HemisphereLight(0xf3efe8, 0x8a7a66, 0.22); lights.add(fill);
+  const underShelf = new THREE.PointLight(0xffd9a8, 0.9, 1.6, 2); underShelf.position.set(0.08, K.shelves[0] - 0.06, K.counterBack + 0.18); lights.add(underShelf);
 
   return { room, lights: { sun, spots, fill }, drawer: drawerEntity, cupboard: cupboardEntity, fridge: fridgeEntity, shelfMeshes };
 }

@@ -40,8 +40,9 @@ export class XRHands {
         h.fromJoints(pts);
         const d = pts[4].distanceTo(pts[8]);
         if (!h.pinch && d < 0.018) h.pinch = true; else if (h.pinch && d > 0.035) h.pinch = false;
-        h.tracked = true;
+        h.tracked = true; h.xrJoints = J;
       } else if (s.grip.visible) {
+        h.xrJoints = null;
         // controller: synthesise a hand at the grip pose
         const p = s.grip.getWorldPosition(new THREE.Vector3()), q = s.grip.getWorldQuaternion(new THREE.Quaternion());
         q.multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)));

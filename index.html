@@ -43,7 +43,7 @@
       <label>Hands
         <select name="input">
           <option value="mouse">mouse + keyboard (pilot / debug)</option>
-          <option value="webcam">webcam hand tracking (MediaPipe)</option>
+          <option value="webcam">webcam hand tracking (both hands, MediaPipe)</option>
           <option value="xr">headset hand tracking (WebXR)</option>
         </select></label>
       <label>Gaze
@@ -52,6 +52,20 @@
           <option value="webcam">webcam iris tracking (calibrated)</option>
           <option value="socket">external eye tracker (WebSocket)</option>
           <option value="mouse">mouse as gaze (debug only)</option>
+        </select></label>
+      <label>Hand appearance
+        <select name="handtone">
+          <option value="neutral">neutral (grey glove)</option>
+          <option value="tone1">skin tone 1 (lightest)</option>
+          <option value="tone2">skin tone 2</option>
+          <option value="tone3">skin tone 3</option>
+          <option value="tone4">skin tone 4</option>
+          <option value="tone5">skin tone 5 (darkest)</option>
+        </select></label>
+      <label>Grasp aids
+        <select name="aids">
+          <option value="on">on: ring under hand, target highlight</option>
+          <option value="off">off (no added visual cues)</option>
         </select></label>
       <label class="wide">Eye tracker socket <input name="socket" value="ws://localhost:8765"></label>
       <label class="wide">Upload endpoint (optional) <input name="endpoint" placeholder="https://… (POST JSON)"></label>
@@ -73,7 +87,17 @@
       <tr><td>Right-drag</td><td>look around</td></tr>
       <tr><td>Bell</td><td>ring it (grasp it) when the sandwich is done</td></tr>
     </table>
-    <p>Webcam: pinch thumb and index to grasp, roll your wrist to twist or flip. Headset: pinch or squeeze; everything is 1:1 scale.</p>
+    <p><b>Webcam.</b> Hold your hands up in front of the camera, palms toward it. Each virtual hand goes to wherever your real hand points on the screen: up is farther away on the counter (or up onto the shelves).</p>
+    <table>
+      <tr><td>Pinch thumb + index</td><td>grasp; open the fingers to let go</td></tr>
+      <tr><td>Push toward the screen</td><td>lower what you hold (press, spread, dip); pull back to lift</td></tr>
+      <tr><td>Rotate your hand</td><td>turn what you hold; unscrew a lid (counter-clockwise, about two strokes)</td></tr>
+      <tr><td>Turn your hand over</td><td>flip a slice</td></tr>
+      <tr><td>Hand at the screen edge</td><td>step sideways (or A / D)</td></tr>
+      <tr><td>C / Space</td><td>hide the camera preview / press down without pushing</td></tr>
+    </table>
+    <p>Pinch the open end of the bread bag to take a slice; pinch the closed end to move the bag. The first slice out is the heel.</p>
+    <p><b>Headset.</b> Pinch or squeeze; everything is 1:1 scale.</p>
   </details>
   <p class="foot">Assets: CC0 photoscans from <a href="https://polyhaven.com" target="_blank">Poly Haven</a>. Data stays in your browser unless you set an upload endpoint.</p>
 </div>

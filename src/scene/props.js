@@ -61,6 +61,7 @@ export class SpreadLayer {
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
     this.tex = new THREE.CanvasTexture(this.canvas);
     const m = mat.clone(); m.alphaMap = this.tex; m.transparent = true; m.depthWrite = false;
+    m.bumpMap = this.tex; m.bumpScale = 2.2;
     m.polygonOffset = true; m.polygonOffsetFactor = -2 - (substance === 'jelly' ? 1 : 0);
     this.mesh = new THREE.Mesh(sliceGeometries().spread, m);
     if (faceSign < 0) { this.mesh.rotation.x = Math.PI; this.mesh.scale.z = -1; }
@@ -116,18 +117,44 @@ export function makeSlice(M, id, index, isHeel) {
 }
 
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion();
+// Loft a closed profile (array of [y,z]) along x through a list of rings {x, s (scale about the centre), r (0..1 blend toward a small circle)}.
+function loftBag(profile, rings, cy, capStart) {
+  const n = profile.length, pos = [], uv = [], idx = [];
+  let per = 0; const acc = [0];
+  for (let i = 0; i < n; i++) { const a = profile[i], b = profile[(i + 1) % n]; per += Math.hypot(b[0] - a[0], b[1] - a[1]); acc.push(per); }
+  rings.forEach((R, k) => {
+    for (let i = 0; i <= n; i++) {
+      const p = profile[i % n], ang = Math.atan2(p[0] - cy, p[1]);
+      const y = cy + (p[0] - cy) * R.s, z = p[1] * R.s, yc = cy + (R.cy || 0) + Math.sin(ang) * R.rad, zc = Math.cos(ang) * R.rad;
+      pos.push(R.x, y + (yc - y) * R.r, z + (zc - z) * R.r); uv.push(acc[i] / per, k / (rings.length - 1));
+    }
+  });
+  for (let k = 0; k < rings.length - 1; k++) for (let i = 0; i < n; i++) { const a = k * (n + 1) + i, b = a + n + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+  if (capStart) { const c = pos.length / 3; pos.push(rings[0].x, cy, 0); uv.push(0.5, 0); for (let i = 0; i < n; i++) idx.push(c, i, i + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+
 export function makeBreadBag(M, world, nSlices = 12) {
   const L = nSlices * SLICE.t + 0.004, H = SLICE.h + 0.008, D = SLICE.w + 0.012;
   const root = new THREE.Group(); root.name = 'bread_bag';
-  const bagBody = new THREE.Mesh(new RoundedBoxGeometry(L + 0.01, H, D, 4, 0.02), M.bag);
-  bagBody.position.set(0, H / 2, 0); bagBody.castShadow = false; root.add(bagBody);
-  // gathered tail (+x end) where the clip sits
-  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.008, D * 0.48, 0.075, 24, 1, true), M.bag);
-  tail.rotation.z = -Math.PI / 2; tail.position.set(L / 2 + 0.042, H * 0.55, 0); tail.scale.set(1, 1, 0.85); tail.castShadow = false; root.add(tail);
-  const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.04, 16, 1, true), M.bag); tuft.rotation.z = Math.PI / 2; tuft.position.set(L / 2 + 0.098, H * 0.55, 0); root.add(tuft);
+  // loaf-shaped film: the slice outline, slightly inflated, lofted along the loaf and gathered at the open end
+  const sp = sliceShape(1.07).getPoints(10).map(p => [p.y + SLICE.h / 2 + 0.004, p.x]);     // [y, z] with the flat base down
+  const cy = H * 0.5, x0 = -L / 2 - 0.006, x1 = L / 2 + 0.004;
+  const closed = [{ x: x0, s: 0.86 }, { x: x0 + 0.004, s: 0.96 }, { x: x0 + 0.012, s: 1 }, { x: x1, s: 1 }, { x: x1 + 0.02, s: 0.93, r: 0.35 }, { x: x1 + 0.04, s: 0.8, r: 0.75 }, { x: x1 + 0.056, s: 0.6, r: 1 }, { x: x1 + 0.062, s: 0.5, r: 1 }]
+    .map((r, i, a) => ({ r: 0, cy: (r.r || 0) * H * 0.05, rad: 0.05 - 0.041 * Math.min(1, Math.max(0, (r.x - x1) / 0.056)), ...r }));
+  const open = [{ x: x0, s: 0.86 }, { x: x0 + 0.004, s: 0.96 }, { x: x0 + 0.012, s: 1 }, { x: x1, s: 1 }, { x: x1 + 0.03, s: 1.02, r: 0.25 }, { x: x1 + 0.075, s: 0.98, r: 0.5 }]
+    .map(r => ({ r: 0, cy: 0, rad: 0.062, ...r }));
+  const gClosed = loftBag(sp, closed, cy, true), gOpen = loftBag(sp, open, cy, true);
+  const bagBody = new THREE.Mesh(gClosed, M.bag); bagBody.castShadow = false; root.add(bagBody);
+  // the twisted tuft of film beyond the clip
+  const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.05, 20, 4, true), M.bag); tuft.rotation.z = Math.PI / 2; tuft.position.set(x1 + 0.062 + 0.025, cy + H * 0.05, 0); tuft.castShadow = false; root.add(tuft);
+  // printed band around the middle of the loaf
+  const band = new THREE.Mesh(loftBag(sliceShape(1.078).getPoints(10).map(p => [p.y + SLICE.h / 2 + 0.004, p.x]), [{ x: -0.045, s: 1, r: 0, rad: 0, cy: 0 }, { x: 0.045, s: 1, r: 0, rad: 0, cy: 0 }], cy, false), M.bagPrint);
+  band.castShadow = false; band.userData.noAOI = true; root.add(band);
+  const tail = bagBody;
   const bag = new Entity('bread_bag', root, { kind: 'bread_bag', role: 'task', aoi: 'bread_bag', footprint: [[-0.06, 0, 0.08], [0.06, 0, 0.08]] });
   bag.state = { open: false, slices: [] };
-  bag.parts = { body: bagBody, tail, tuft, L, H };
+  bag.parts = { body: bagBody, tuft, band, L, H };
   // standing-slice basis: local y -> +x, local -z -> +y
   const basis = _m4.makeBasis(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0));
   _q.setFromRotationMatrix(basis);
@@ -149,11 +176,11 @@ export function makeBreadBag(M, world, nSlices = 12) {
   const clipRoot = new THREE.Group(); clipRoot.add(new THREE.Mesh(clipGeo, M.clip));
   const clip = new Entity('bread_clip', clipRoot, { kind: 'bread_clip', role: 'task', aoi: 'bread_clip', footprint: [[0, 0, 0.02]] });
   clip.state = { onBag: bag };
-  clip.attachPose = { pos: new THREE.Vector3(L / 2 + 0.072, H * 0.55 - 0.012, 0), quat: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2) };
+  clip.attachPose = { pos: new THREE.Vector3(L / 2 + 0.064, H * 0.55 - 0.012, 0), quat: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2) };
   clipRoot.position.copy(clip.attachPose.pos); clipRoot.quaternion.copy(clip.attachPose.quat);
   root.add(clipRoot); world.entities.set(clip.id, clip);
   bag.clip = clip;
-  bag.setOpen = (open) => { bag.state.open = open; tuft.visible = !open; tail.scale.set(open ? 0.6 : 1, open ? 1.6 : 1, open ? 1.0 : 0.85); };
+  bag.setOpen = (o) => { bag.state.open = o; tuft.visible = !o; bagBody.geometry = o ? gOpen : gClosed; };
   return bag;
 }
 
@@ -257,8 +284,8 @@ export function makePlate(M, id = 'plate') {
   const R = 0.135;
   const prof = [V2(0, 0.006), V2(0.08, 0.006), V2(0.095, 0.009), V2(0.118, 0.019), V2(R, 0.022), V2(R + 0.001, 0.02), V2(0.12, 0.016), V2(0.098, 0.006), V2(0.07, 0.0), V2(0.062, 0.0), V2(0.06, 0.003), V2(0, 0.003)];
   const root = new THREE.Group(); root.name = id;
-  const plate = new THREE.Mesh(new THREE.LatheGeometry(prof, 96), M.ceramic); root.add(plate);
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.128, 0.0012, 6, 96), M.ceramicRim); rim.rotation.x = Math.PI / 2; rim.position.y = 0.0205; rim.userData.noAOI = true; root.add(rim);
+  const plate = new THREE.Mesh(new THREE.LatheGeometry(prof, 96), M.plateGlaze); root.add(plate);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.1345, 0.0014, 6, 96), M.plateRim); rim.rotation.x = Math.PI / 2; rim.position.y = 0.0212; rim.userData.noAOI = true; root.add(rim);
   const ent = new Entity(id, root, { kind: 'plate', role: 'task', aoi: id, footprint: [[0, 0, R + 0.01]] });
   ent.supportMesh = plate;
   return ent;
