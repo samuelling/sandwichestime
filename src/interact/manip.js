@@ -60,6 +60,8 @@ export class Manipulator {
     return out;
   }
   nearest(hand) { return this.nearestTo(hand.grip, hand); }
+  distanceTo(e, point) { return ownDistance(e, point).d; }
+  sizeOf(e) { return ownDistance(e, e.root.getWorldPosition(_v)).vol; }
   // Within `radius` of a point, prefer the smaller object (a slice inside the bag, the lid on the jar, the clip on the bag).
   nearestTo(point, hand, radius = this.th.grasp_radius_m) {
     let best = null, bs = Infinity;

@@ -153,6 +153,65 @@ bind pose. In a headset the runtime's own joint poses are copied directly.
 
 ## Webcam control
 
+There are two mappings. The **counter** mapping (the default since v0.5) keeps
+the counter where the participant's body expects it: hands palm-down in front of
+them, fingers toward the screen, hovering as if over a counter. The older
+**upright** mapping (`webcammap=upright`) has the hands work on a copy of the
+counter turned 90° to stand upright in front of the camera. It is described
+after the counter mapping, and is kept for comparison.
+
+### Counter mapping
+
+| what the participant does | what happens |
+|---|---|
+| moves a hand left or right | the virtual hand moves left or right along the counter |
+| moves a hand forward, toward the screen | it moves farther back along the counter (to the wall and the shelves) |
+| raises or lowers a hand | it rises (to the shelves and cupboard) or lowers |
+| holds a hand over something, a little above it | that thing is offered, and the virtual hand dips onto it |
+| pinches thumb and index | grasps what is offered |
+| lowers a held object onto a surface | sets it down; lowered further, presses (dip, spread, cut). It stays down until lifted clear by 2 cm |
+| turns the hand about the vertical, holding a lid | unscrews it (2.5× gain) |
+| turns the hand over | flips a slice |
+| reaches far past the end of the counter | steps sideways |
+
+The camera sees the three directions as a mixture: a hand moving toward the
+screen grows in the picture and also drops in it (the camera sits above the
+hands), and a hand rising moves up in the picture. Rather than model the lens and
+the camera's placement, calibration measures how the picture changes for
+"forward" and for "up", per hand, as two vectors in (image height, log image
+scale). The current hand is then solved as rest + a·forward + b·up, which
+separates the two even when the camera is tilted. Sideways is the image offset
+multiplied by distance (so it does not change as the hand moves forward).
+Distance is read from the palm alone, which keeps its shape when the fingers
+pinch; reading it from the whole hand made a pinch look like a reach. The hand's
+own pitch in the rest pose is measured and levelled, so a relaxed hand looks
+flat in the kitchen.
+
+Calibration has five poses, each demonstrated first by cartoon hands seen from
+the participant's own eyes over a counter in perspective, with shadows showing
+height:
+
+| pose | sets |
+|---|---|
+| hands over the counter, still | the rest pose (counter front, hover height 12 cm), open pinch gap, level, smoothing |
+| pinch | pinch and release thresholds |
+| reach forward at the same height | the "forward" direction (rest → back of the counter, 40 cm in the kitchen) |
+| raise | the "up" direction (rest → 55 cm higher, the first shelf) |
+| sweep left and right at counter height | the sideways range (±62 cm in the kitchen) |
+
+Picking is tolerant of jitter in a specific way: a small thing already offered
+(the clip on the bag, the lid on the jar) stays offered until the hand is
+clearly off it, so a tremor at the moment of the pinch cannot swap it for the
+larger thing it sits on. The reverse never happens.
+
+`tools/test_controls.py counter` checks all of this with palm-down hands at real
+3D positions in front of a pinhole camera: the calibration, the decoupling of
+forward and up, taking the clip, putting it down by lowering, a slice from the
+bag to the plate, unscrewing the lid by turning the hand, and stepping.
+
+### Upright mapping
+
+
 A single webcam measures the image plane well and depth poorly, and the task
 lives on a horizontal counter. So the precise axes go where precision matters.
 
@@ -257,13 +316,19 @@ task did not have, so they are optional and recorded in `meta.aids`. Turn them
 off for sessions where gaze is the measure of interest, or treat them as a
 factor.
 
-## Known limitations (v0.4)
+## Known limitations (v0.5)
 
 * Physics is light. Objects settle onto the highest support under their
   footprint, but nothing collides while it is held, and an object set down on
   top of a non-support object (a spoon) interpenetrates it.
 * In mouse and webcam modes, held objects stay upright (yaw follows the hand,
   and turning the hand over flips slices). Only WebXR gives full 6-DoF holding.
+* The counter mapping depends on MediaPipe seeing palm-down hands from in front
+  and above, a harder view for it than palms facing the camera (fingers are
+  foreshortened toward the lens). It is tested with synthetic hands only.
+  With the camera at the top of a laptop screen, hands near the desk can drop
+  out of the bottom of the picture; calibration warns and suggests tilting the
+  screen back.
 * Webcam control and its calibration are tested with synthetic landmarks. The
   fractions that turn measurements into settings (grasp at 20% and release at
   45% of the pinch range, touch down at 60% of the push; `deriveCal` in

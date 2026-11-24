@@ -109,7 +109,7 @@ async function start(cfg) {
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.4.1' };
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.5.0' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;
@@ -130,14 +130,14 @@ async function start(cfg) {
   }
   let preview = null;
   if (cfg.input === 'webcam') {
-    webcamHands = new WebcamHands(vision, hands, body, world.bus, new Reacher(camera, world, manip, body), { participant: cfg.participant });
+    webcamHands = new WebcamHands(vision, hands, body, world.bus, new Reacher(camera, world, manip, body), { participant: cfg.participant, mapping: cfg.webcammap || 'counter' });
     webcamHands.reacher.onLimit = () => toast('Out of reach: step sideways or use the other hand', 2600);
     if (params.get('preview') !== '0') preview = new CamPreview(vision, webcamHands);
   }
   if (input?.reacher) input.reacher.onLimit = () => toast('Out of reach: step sideways or use the other hand', 2600);
   if (cfg.input === 'xr') xrHands = new XRHands(renderer, scene, hands, world.bus);
   const aids = cfg.aids !== 'off' && cfg.input !== 'autopilot' ? new GraspAids(scene, world, hands, manip, camera) : null;
-  meta.aids = !!aids; meta.handtone = cfg.handtone || 'neutral';
+  meta.aids = !!aids; meta.handtone = cfg.handtone || 'neutral'; if (webcamHands) meta.webcammap = webcamHands.mapping;
 
   // ---- gaze ----
   const gaze = new Gaze(world, camera, cfg, taskDef.thresholds);
