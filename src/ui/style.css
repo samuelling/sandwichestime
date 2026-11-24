@@ -98,3 +98,4 @@ body:has(#touchbar) #toast { bottom:calc(100px + env(safe-area-inset-bottom)); }
 #handcal button { margin-left:8px; padding:7px 14px; border-radius:8px; border:1px solid rgba(255,255,255,.25); background:transparent; color:inherit; font:inherit; font-size:13px; cursor:pointer; }
 #handcal button:hover { background:rgba(255,255,255,.1); }
 #handcal button[hidden] { display:none; }
+#handcal .stage.watch { cursor:pointer; }

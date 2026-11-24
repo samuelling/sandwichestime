@@ -50,13 +50,16 @@
     check('logged as a quick calibration', JSON.stringify(S.logger.calibration).includes('"mode":"quick"'), c.length);
   } else {
     // ---- the four poses ----
+    // record, per step, which phases were shown and whether anything was measured during the demo
+    const phases = {}; let rec = true;
+    (async () => { while (rec) { const v = WH.calView; if (v && v.id) { const p = phases[v.id] ??= { seq: [], progInDemo: 0 }; if (p.seq.at(-1) !== v.phase) p.seq.push(v.phase); if (v.phase !== 'do') p.progInDemo = Math.max(p.progInDemo, ...v.prog); } await raf(); } })();
     const t0 = ms(), seen = {};
     check('1 open: screen is up, hands parked', await step('open') && !document.querySelector('#handcal').hidden && WH.calibrating && parked());
     seen.open = await step('pinch'); both(s => (s.pinch = PINCH)); await sleep(150);
     check('2 pinch reached; pinching grabs nothing while calibrating', seen.open && parked());
     seen.pinch = await step('push'); both(s => (s.k = K0 * Math.exp(PUSH)));
     check('3 push reached', seen.pinch, WH.calView?.id);
-    seen.push = await step('range'); both(s => { s.pinch = 0; s.k = K0; });
+    seen.push = await step('range'); both(s => { s.pinch = 0; s.k = K0; }); await until(() => WH.calView?.phase === 'do', 20000);     /* watch the demo, then sweep */
     check('4 reach reached', seen.push, WH.calView?.id);
     // sweep the reachable area the way a person does: out to each corner, pausing there
     const tr = ms(), U = [0.18, 0.82], V = [0.22, 0.84], mid = PHASE === 'onehand' ? U[0] : (U[0] + U[1]) / 2;     /* one hand alone covers the whole width */
@@ -72,6 +75,9 @@
     }
     both(s => (s.v = 0.55)); state.L.u = 0.36; state.R.u = 0.64;
     await until(() => !WH.calibrating, 20000);
+    rec = false;
+    check('every pose is demonstrated first, then "your turn"', WH.demosShown.join() === 'open,pinch,push,range' && ['pinch', 'push', 'range'].every(id => phases[id]?.seq.join('>').startsWith('demo>go>do')), [WH.demosShown.join(), Object.fromEntries(Object.entries(phases).map(([k, v]) => [k, v.seq.join('>')]))]);
+    check('nothing is measured while the demo plays', Object.values(phases).every(p => p.progInDemo === 0));
     const cal = WH.cal, me = cal.measured || {}, fb = cal.fallback || {}, dur = (ms() - t0) / 1000;
     const hs = PHASE === 'onehand' ? [1] : [0, 1];
     check('finished, screen closed', !WH.calibrating && document.querySelector('#handcal').hidden && cal.source === 'calibrated', [cal.source, dur.toFixed(1) + ' s']);

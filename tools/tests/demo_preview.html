@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#16130f">
+<script type="importmap">{ "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/addons/" } }</script>
+<canvas id="c" width="1920" height="1080" style="width:960px;height:540px;display:block"></canvas>
+<script type="module">
+// renders a grid of frames of each calibration demo (for checking the cartoon hands by eye)
+import { drawDemo, DEMOS } from '/src/ui/handdemo.js';
+const g = document.getElementById('c').getContext('2d'), Q = new URLSearchParams(location.search);
+if (Q.get('id')) { g.fillStyle = '#2a241e'; g.fillRect(0, 0, 1920, 1080); drawDemo(g, Q.get('id'), +Q.get('t') || 1.5, { x: 0, y: 0, w: 1920, h: 1080 }); window.__done = true; throw 0; }
+const ids = ['open', 'pinch', 'push', 'range'], cols = 4;
+const W = 1920 / cols, H = W * 9 / 16;
+ids.forEach((id, row) => { const D = DEMOS[id];
+  for (let c = 0; c < cols; c++) { const t = [0.5, 0.45, 0.4, 0.75][c] * D.len * (c === 0 ? 1 : 1) + (c === 0 ? 0 : 0);
+    const tt = id === 'range' ? [0.6, 1.2, 2.6, 3.3][c] : id === 'pinch' ? [0.2, 0.7, 1.5, 2.2][c] : id === 'push' ? [0.2, 0.8, 1.6, 2.3][c] : [0.3, 0.8, 1.5, 2.3][c];
+    const r = { x: c * W, y: row * H, w: W, h: H };
+    g.save(); g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); g.fillStyle = (row + c) % 2 ? '#221d18' : '#2a241e'; g.fillRect(r.x, r.y, r.w, r.h);
+    drawDemo(g, id, tt, r, { caption: c === 3 }); g.restore(); } });
+window.__done = true;
+</script>

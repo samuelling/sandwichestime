@@ -200,6 +200,16 @@ part of the mapping:
 | pinch and push toward the screen (0.8 s) | comfortable push, as a change in log image size | the height gain: a held object touches down at 60% of that push |
 | sweep the reachable area | where the palms go in the picture | the box that maps onto the screen (1.5th to 98.5th percentile, 2% inside) |
 
+Each pose is acted out first by a pair of cartoon hands, drawn from the same
+canonical hand shape the tracker is tested with and seen as in the mirrored
+picture (palms toward the screen, fingers up, thumbs inward). The cartoon plays
+once over a dimmed camera view, with nothing measured, then "Your turn", then
+keeps looping small in a corner while the participant copies it. Clicking the
+picture cuts the demo short. The cartoon pinch is drawn as it looks from the
+front (index curling over to meet the thumb, other fingers up) rather than as
+the tracker's pinch shape, which curls the fingers toward the camera and reads
+as a fist when seen head-on.
+
 Anything that cannot be measured (a pose skipped or timed out) keeps its
 standard value, and a hand that never appears borrows the other hand's values.
 While the poses are being measured the virtual hands are parked, so pinching

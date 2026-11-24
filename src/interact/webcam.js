@@ -120,14 +120,14 @@ export class WebcamHands {
   // `speed` shortens the holds (testing). `ui` is a view: ui.show(view, actions) / ui.hide().
   async calibrate(ui, { mode = 'full', speed = 1 } = {}) {
     if (this.calibrating) return null;
-    this.calibrating = true;
+    this.calibrating = true; this.demosShown = [];
     const st = this.st, D = WEBCAM_DEFAULTS, T = s => s / speed, saved = this.savedCal();
     let quick = mode === 'quick' && !!saved;
     this.bus.emit('calibration_start', { what: 'webcam_hands', mode: quick ? 'quick' : 'full' });
     const res = { lnk0: [null, null], open: [null, null], closed: [null, null], closedHi: [null, null], lnkPinch: [null, null], push: [null, null], jitter: [null, null], box: null }, steps = {};
-    const view = this.calView = { step: 0, n: quick ? 1 : 4, id: '', title: '', hint: '', warn: '', prog: [0, 0], need: [true, true], box: null, trail: [], done: false, quick, skip: false, redo: false, meter: null };
+    const view = this.calView = { step: 0, n: quick ? 1 : 4, id: '', title: '', hint: '', warn: '', prog: [0, 0], need: [true, true], box: null, trail: [], done: false, quick, skip: false, redo: false, meter: null, phase: 'do', demoId: '', demoT0: 0, demoLen: 1, skipDemo: false, speed };
     let skipAll = false;
-    ui?.show(view, { skip: () => (view.skip = true), skipAll: () => (skipAll = true), redo: () => { view.redo = true; view.skip = true; } });
+    ui?.show(view, { skip: () => (view.skip = true), skipAll: () => (skipAll = true), redo: () => { view.redo = true; view.skip = true; }, skipDemo: () => (view.skipDemo = true) });
     const frame = () => new Promise(r => requestAnimationFrame(r)), ms = () => performance.now();
     const pause = async s => { const t0 = ms(); while (ms() - t0 < s * 1000 && !skipAll) await frame(); };
     // per-hand motion (rates on tracker frames, lightly smoothed) and time out of sight
@@ -148,10 +148,21 @@ export class WebcamHands {
       });
       return { dt, fresh };
     };
+    // Before each pose, cartoon hands act it out (`secs` long, or until the participant clicks), then "Your turn".
+    // Nothing is measured until then; afterwards the demo keeps looping small in a corner of the picture.
+    const demo = async (id, secs) => {
+      if (skipAll || !secs) { view.phase = 'do'; return; }
+      Object.assign(view, { phase: 'demo', demoId: id, demoT0: ms(), demoLen: T(secs), skipDemo: false }); this.demosShown.push(view.id);
+      while (ms() - view.demoT0 < T(secs) * 1000 && !skipAll && !view.skip && !view.skipDemo) { await frame(); tick(); }
+      view.phase = 'go'; view.goT0 = ms();
+      while (ms() - view.goT0 < T(0.7) * 1000 && !skipAll && !view.skip) { await frame(); tick(); }
+      view.phase = 'do';
+    };
     // One pose: `ok(i, S, m)` says whether hand i is doing it; samples are taken while it is. Done when every hand
     // that is needed has held for `hold` s. A hand that never shows up is dropped once the other has finished.
-    const runStep = async ({ id, title, hint, hold, timeout, ok, sample, warn, meter }) => {
+    const runStep = async ({ id, title, hint, hold, timeout, ok, sample, warn, meter, show = id, showFor = 0 }) => {
       Object.assign(view, { step: view.step + 1, id, title, hint, warn: '', prog: [0, 0], skip: false, done: false, meter: null });
+      await demo(show, showFor);
       const t0 = ms(), held = [0, 0], bad = [0, 0], buf = [[], []];
       for (;;) {
         await frame();
@@ -183,13 +194,13 @@ export class WebcamHands {
       return st[0].seen !== st[1].seen ? 'Show both hands (or keep one up: it will carry on with one).' : '';
     };
     const openOk = (i, S, m) => m.sp < 0.15 && Math.exp(S.lnk) < 3.2 && Math.exp(S.lnk) > 0.7;      /* no test on the gap itself: whatever this person's relaxed hand reads as IS "open" */
-    const openStep = (id, title, hint, timeout) => runStep({ id, title, hint, hold: 1.2, timeout, ok: openOk, sample: (i, S) => ({ lnk: S.rlnk, pd: S.pinchD, u: S.ru, v: S.rv }), warn: framing });
+    const openStep = (id, title, hint, timeout, showFor) => runStep({ id, title, hint, hold: 1.2, timeout, show: 'open', showFor, ok: openOk, sample: (i, S) => ({ lnk: S.rlnk, pd: S.pinchD, u: S.ru, v: S.rv }), warn: framing });
     const takeOpen = b => b.forEach((a, i) => { if (!a) return; res.lnk0[i] = median(a.map(x => x.lnk)); res.open[i] = median(a.map(x => x.pd));
       const ju = jitterOf(a.map(x => x.u)), jv = jitterOf(a.map(x => x.v)); res.jitter[i] = ju === null ? null : Math.hypot(ju, jv) / Math.SQRT2; });
 
     let cal = null;
     if (quick) {
-      const b = await openStep('check', 'Welcome back', 'Hold your hands up, open and relaxed, for a moment. Your saved calibration will be used.', 20);
+      const b = await openStep('check', 'Welcome back', 'Hold your hands up, palms to the screen, for a moment. Your saved calibration will be used.', 20, 1.6);
       if (b) {
         takeOpen(b);
         const off = [0, 1].some(i => res.open[i] !== null && saved.measured?.open?.[i] && Math.abs(res.open[i] / saved.measured.open[i] - 1) > 0.4);
@@ -200,24 +211,25 @@ export class WebcamHands {
     }
     if (!quick) {
       // 1 open
-      const b1 = await openStep('open', 'Open hands', 'Sit about an arm’s length from the camera. Hold both hands up where you would comfortably work, open and relaxed, and keep them still.', 45);
+      const b1 = await openStep('open', 'Open hands', 'Sit about an arm’s length from the camera. Hold both hands up where you would comfortably work: palms toward the screen, fingers up, relaxed. Keep them still.', 45, 2.6);
       if (b1) takeOpen(b1);
       // 2 pinch
       const drop = i => { const o = res.open[i] ?? res.open[1 - i] ?? 0.8; return Math.max(0.1, 0.25 * o) / o; };      /* how far the gap must close (as a fraction of open) to count as an attempt at a pinch */
       const opn = i => res.open[i] ?? res.open[1 - i] ?? 0.8;
-      const b2 = skipAll ? null : await runStep({ id: 'pinch', title: 'Pinch', hint: 'Touch thumb and index fingertip together on each hand, the way you would pick up something small. Hold it.', hold: 0.9, timeout: 25,
+      const b2 = skipAll ? null : await runStep({ id: 'pinch', title: 'Pinch', hint: 'Keep your palms toward the screen and touch the tip of your thumb to the tip of your index finger on each hand. This is how you will pick things up. Hold it.', hold: 0.9, timeout: 25, showFor: 2.9,
         ok: (i, S, m) => S.pinchD < opn(i) * (1 - drop(i)) && Math.abs(m.dp) < 0.8, sample: (i, S) => ({ pd: S.pinchD, lnk: S.rlnk }), warn: framing,
         meter: () => st.map((S, i) => ({ value: clamp(1 - S.pinchD / opn(i), 0, 1), mark: drop(i) })) });
       b2?.forEach((a, i) => { if (!a) return; res.closed[i] = median(a.map(x => x.pd)); res.closedHi[i] = pct(a.map(x => x.pd), 0.9); res.lnkPinch[i] = median(a.map(x => x.lnk)); });
       // 3 push (while still pinching, as when pressing something down)
       const base = st.map((S, i) => res.lnkPinch[i] ?? res.lnk0[i] ?? S.lnk);
-      const b3 = skipAll ? null : await runStep({ id: 'push', title: 'Push', hint: 'Keep pinching and push your hands toward the screen, as far as is comfortable, as if pressing something down. Hold it there.', hold: 0.8, timeout: 25,
+      const b3 = skipAll ? null : await runStep({ id: 'push', title: 'Push', hint: 'Keep pinching and move your hands toward the screen, as far as is comfortable. This is how you will press things down. Hold it there.', hold: 0.8, timeout: 25, showFor: 3.1,
         ok: (i, S, m) => S.lnk - base[i] > 0.05 && Math.abs(m.dl) < 0.12, sample: (i, S) => S.rlnk,
         meter: () => st.map((S, i) => ({ value: clamp((S.lnk - base[i]) / 0.4, 0, 1), mark: 0.05 / 0.4 })) });
       b3?.forEach((a, i) => { if (a) res.push[i] = median(a) - base[i]; });
       // 4 range
       if (!skipAll) res.box = await (async () => {
         Object.assign(view, { step: view.step + 1, id: 'range', title: 'Reach', hint: 'Open your hands and pull back. Now sweep them slowly around the whole area you can reach comfortably: far left, far right, up high, down low. The box shows what you have covered; it finishes when the box stops growing.', warn: '', prog: [0, 0], skip: false, done: false, meter: null, box: null, trail: [] });
+        await demo('range', 4.4);
         const us = [], vs = []; let t0 = null, grew = ms(), bx = null, ref = null;
         const big = b => !!b && b.u1 - b.u0 >= MIN_BOX.w && b.v1 - b.v0 >= MIN_BOX.h;
         for (;;) {
@@ -253,7 +265,7 @@ export class WebcamHands {
     const ok = cal.source !== 'default' && !missing.length;
     this.bus.emit('calibration', { type: 'webcam_hands', ok, mode: cal.source === 'saved' ? 'quick' : 'full', source: cal.source, steps, lnk0: st.map(S => S.lnk0), box: cal.box, carry: CARRY, pressAt: PRESS_AT,
       liftGain: cal.liftGain, pOn: cal.pOn, pOff: cal.pOff, cutoff: cal.cutoff, measured: cal.measured || null, fallback: cal.fallback || null, hands: view.need, stored, rate: +this.rate.toFixed(1), video: [cam?.videoWidth || null, cam?.videoHeight || null] });
-    Object.assign(view, { step: view.n + 1, id: 'done', done: true, warn: '', meter: null, prog: [0, 0], title: cal.source === 'default' ? 'Using standard settings' : 'All set',
+    Object.assign(view, { step: view.n + 1, id: 'done', phase: 'do', demoId: '', done: true, warn: '', meter: null, prog: [0, 0], title: cal.source === 'default' ? 'Using standard settings' : 'All set',
       hint: cal.source === 'saved' ? 'Using your saved calibration. Press K at any time to measure again.'
         : cal.source === 'default' ? 'Nothing was measured. Press K at any time to calibrate.'
         : missing.length ? `Could not measure ${missing.join(' and ')}, so standard settings are used for that. Press K to try again.` : 'Pinch, press depth and reach are now tuned to your hands. Press K at any time to redo this.' });
