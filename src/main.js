@@ -45,7 +45,7 @@ async function start(cfg) {
   const canvas = $('#view');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(+params.get('pr') || (params.get('fast') ? 0.5 : Math.min(devicePixelRatio, 2))); renderer.setSize(innerWidth, innerHeight);
-  renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.15;
+  renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.xr.enabled = cfg.input === 'xr';
   setMaxAnisotropy(renderer.capabilities.getMaxAnisotropy());

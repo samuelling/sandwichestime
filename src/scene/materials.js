@@ -249,7 +249,7 @@ export function buildMaterials(manifest) {
   M.crumb = new THREE.MeshStandardMaterial({ map: crumb.map, normalMap: crumb.normalMap, normalScale: new THREE.Vector2(0.8, 0.8), roughness: 0.92 });
   M.crust = new THREE.MeshStandardMaterial({ map: crust.map, normalMap: crust.normalMap, roughness: 0.75 });
   const sn = spreadNormal();
-  M.pbStuff = new THREE.MeshPhysicalMaterial({ color: 0x7a4212, roughness: 0.58, normalMap: sn, normalScale: new THREE.Vector2(0.6, 0.6), sheen: 0.08 });
+  M.pbStuff = new THREE.MeshPhysicalMaterial({ color: 0x5f3109, roughness: 0.6, normalMap: sn, normalScale: new THREE.Vector2(0.6, 0.6), sheen: 0.08 });
   M.jellyStuff = new THREE.MeshPhysicalMaterial({ color: 0x5a1046, roughness: 0.08, transmission: 0.55, thickness: 0.02, attenuationColor: new THREE.Color(0x3a0630), attenuationDistance: 0.01, clearcoat: 1, normalMap: sn, normalScale: new THREE.Vector2(0.3, 0.3) });
   M.jarGlass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 1, roughness: 0.03, thickness: 0.004, ior: 1.5, envMapIntensity: 1.2 });
   M.jarPlastic = new THREE.MeshPhysicalMaterial({ color: 0xfff5e6, transmission: 0.6, roughness: 0.25, thickness: 0.003 });
