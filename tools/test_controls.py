@@ -35,6 +35,26 @@ async def synthetic(a):
     if r['errors']: print(r['errors'])
     print('PASS' if r['pass'] and not r['errors'] else 'FAIL'); return r['pass'] and not r['errors']
 
+async def calibration(a):
+    """Guided webcam calibration with synthetic hands: first visit, saved calibration, one hand only, and skipping."""
+    js = open(os.path.join(HERE, 'tests', 'webcam_calibration.js')).read(); ok = True
+    async with async_playwright() as p:
+        b = await p.chromium.launch(executable_path=a.chrome, args=GL)
+        ctx = await b.new_context(viewport={'width': 800, 'height': 480})      # one context: localStorage carries from 'full' to 'quick'
+        for phase, who in [('full', 'cal_a'), ('quick', 'cal_a'), ('onehand', 'cal_b'), ('skip', 'cal_c')]:
+            pg = await ctx.new_page()
+            await pg.goto(f"{a.base}?auto=1&input=webcam&fakecam=1&calib=auto&calibspeed=2&participant={who}&gaze=none&quality=0&saliency=0&seed={a.seed}&pr=0.5&fast=1")
+            await pg.wait_for_function('window.__sandwich && window.__sandwich.webcamHands', timeout=120000)
+            if a.shot and phase == 'full':
+                await pg.wait_for_function("!document.querySelector('#handcal').hidden", timeout=20000)
+            r = json.loads(await pg.evaluate(js.replace('__PHASE__', phase)))
+            print(f'[{phase}]')
+            for k, v in r['out'].items(): print('  ok ' if v['ok'] else '  XX ', k, v.get('info', ''))
+            if r['errors']: print(r['errors'])
+            ok = ok and r['pass'] and not r['errors']; await pg.close()
+        await b.close()
+    print('PASS' if ok else 'FAIL'); return ok
+
 async def camera(a):
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path=a.chrome, args=GL + ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', f'--use-file-for-fake-video-capture={os.path.abspath(a.video)}'])
@@ -155,11 +175,11 @@ async def touch(a):
     print('PASS' if all(out.values()) else 'FAIL'); return all(out.values())
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'camera', 'mouse', 'touch'])
+    ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'calibration', 'camera', 'mouse', 'touch'])
     ap.add_argument('--base', default='http://localhost:8811/index.html'); ap.add_argument('--chrome', default=None); ap.add_argument('--seed', type=int, default=1)
     ap.add_argument('--video'); ap.add_argument('--shot'); ap.add_argument('--wait', type=float, default=6); ap.add_argument('--tone', default='neutral')
     a = ap.parse_args()
-    sys.exit(0 if asyncio.run({'synthetic': synthetic, 'camera': camera, 'mouse': mouse, 'touch': touch}[a.which](a)) else 1)
+    sys.exit(0 if asyncio.run({'synthetic': synthetic, 'calibration': calibration, 'camera': camera, 'mouse': mouse, 'touch': touch}[a.which](a)) else 1)
 
 if __name__ == '__main__':
     main()

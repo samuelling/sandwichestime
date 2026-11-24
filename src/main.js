@@ -17,6 +17,7 @@ import { Vision } from './interact/vision.js';
 import { WebcamHands } from './interact/webcam.js';
 import { Reacher } from './interact/reach.js';
 import { CamPreview } from './ui/campreview.js';
+import { CalibrationUI } from './ui/calibration.js';
 import { GraspAids } from './ui/aids.js';
 import { XRHands } from './interact/xr.js';
 import { Autopilot } from './interact/autopilot.js';
@@ -108,7 +109,7 @@ async function start(cfg) {
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.3.1' };
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.4.0' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;
@@ -129,7 +130,7 @@ async function start(cfg) {
   }
   let preview = null;
   if (cfg.input === 'webcam') {
-    webcamHands = new WebcamHands(vision, hands, body, world.bus, new Reacher(camera, world, manip, body));
+    webcamHands = new WebcamHands(vision, hands, body, world.bus, new Reacher(camera, world, manip, body), { participant: cfg.participant });
     webcamHands.reacher.onLimit = () => toast('Out of reach: step sideways or use the other hand', 2600);
     if (params.get('preview') !== '0') preview = new CamPreview(vision, webcamHands);
   }
@@ -242,7 +243,14 @@ async function start(cfg) {
   });
   // ---- calibration (with the scene already live), then start the trial ----
   (async () => {
-    if (webcamHands) await webcamHands.calibrate(m => ($('#instruction').textContent = m), params.get('fakecam') === '1' ? 0.3 : 2.0);
+    if (webcamHands) {
+      // calib = auto (full the first time for this participant, then a quick check), full, quick, or off. Scripted runs (fakecam) default to off.
+      const mode = params.get('calib') || (params.get('fakecam') === '1' ? 'off' : 'auto'), calUI = new CalibrationUI(vision, webcamHands), speed = +params.get('calibspeed') || 1;
+      const run = m => webcamHands.calibrate(calUI, { mode: m === 'full' ? 'full' : m === 'quick' || webcamHands.savedCal() ? 'quick' : 'full', speed });
+      if (mode !== 'off') { $('#instruction').textContent = 'Calibrating hand tracking…'; await run(mode); }
+      else webcamHands.bus.emit('calibration', { type: 'webcam_hands', ok: false, mode: 'off', source: 'default', box: webcamHands.cal.box, liftGain: webcamHands.cal.liftGain, pOn: webcamHands.cal.pOn, pOff: webcamHands.cal.pOff, cutoff: webcamHands.cal.cutoff });
+      webcamHands.onRecalibrate = () => { if (hands.some(h => h.holding)) toast('Put things down first, then press K to calibrate', 2600); else if (!ended) run('full'); };
+    }
     if (webcamGaze) {
       try { const r = await webcamGaze.calibrate($('#calib'), $('#calib-dot'), $('#calib-msg')); toast(`Gaze calibrated: ~${r.approxDeg}° median error`, 3500); }
       catch (e) { toast('Gaze calibration failed: ' + e.message, 5000); }

@@ -160,7 +160,7 @@ lives on a horizontal counter. So the precise axes go where precision matters.
 |---|---|
 | moves a hand in the image | the virtual hand goes to whatever a ray through that screen position lands on: left/right and near/far on the counter, or up onto shelves and handles |
 | pinches thumb and index | grasps what the hand is on (the ray is refined to the smallest graspable thing there: the clip on the bag, the lid on the jar) |
-| moves the hand toward the camera | lowers what it holds. Objects are carried 7 cm up; about 15% closer presses down, and pulling back lifts higher |
+| moves the hand toward the camera | lowers what it holds. Objects are carried 7 cm up; they touch down at 60% of the participant's own comfortable push (about 15% closer without calibration), and pulling back lifts higher |
 | rotates the hand in the image | turns the held object; unscrews a lid, with a 2.5× gain so two strokes open it |
 | turns the hand over | flips a slice |
 | holds a hand at the screen edge | steps sideways |
@@ -183,6 +183,44 @@ Details that matter in practice:
   layout generator keeps the knife out of such blind spots.
 * The first slice out of the bag is the heel, as in a real loaf.
 
+### Calibration
+
+People differ in exactly the quantities this mapping depends on: how close their
+fingertips come when they pinch (and how MediaPipe reads it), how far they push,
+where their hands sit in the picture, and how noisy their camera is. Fixed
+numbers fit an average hand and feel fiddly on everyone else, so the first
+webcam session for a participant starts with four poses on a large mirrored
+camera view. Each is accepted by itself once it has been held, and each sets one
+part of the mapping:
+
+| pose | measured | sets |
+|---|---|---|
+| open hands, held still (1.2 s) | open thumb-index gap, neutral distance, frame-to-frame jitter of the palm | the "open" end of the pinch scale; the smoothing of the pointer at rest (just enough to bring this camera's jitter down to about 0.1% of the screen, within 0.7 to 2.2 Hz) |
+| pinch (0.9 s) | closed gap and its wobble | per-hand thresholds: grasp at 20% of the way from closed to open (more if the closed gap wobbles, up to 40%), release at 45% (up to 75% when the range is small) |
+| pinch and push toward the screen (0.8 s) | comfortable push, as a change in log image size | the height gain: a held object touches down at 60% of that push |
+| sweep the reachable area | where the palms go in the picture | the box that maps onto the screen (1.5th to 98.5th percentile, 2% inside) |
+
+Anything that cannot be measured (a pose skipped or timed out) keeps its
+standard value, and a hand that never appears borrows the other hand's values.
+While the poses are being measured the virtual hands are parked, so pinching
+cannot grab or drop anything. The result is stored in the browser under the
+participant ID; later sessions for that ID only do a one-second open-hand check
+and re-measure if the hand looks more than 40% different. K recalibrates at any
+time (with empty hands), and `calib=full|quick|off` in the URL forces a mode.
+Every calibration is logged with its raw measurements, the derived settings and
+which poses fell back to standard values, so sessions can be compared or
+excluded on that basis.
+
+Three changes that do not depend on calibration came with it. A pressed object
+stays down until it is lifted clear by 2 cm (before, it chattered at the contact
+height). The reference distance keeps adapting for 0.35 s after a grasp, so the
+change in apparent hand size caused by the pinch itself no longer moves the
+object. And the pointer holds still for the two frames in which a pinch or
+release is being confirmed.
+
+`tools/test_controls.py calibration` walks synthetic hands through all four
+poses (including a loose pinch that the standard threshold misses), a saved
+calibration, a one-handed participant and skipping.
 `tools/test_controls.py synthetic` drives this whole path with generated
 landmarks and checks grasping, carrying, pressing, flipping, dropouts,
 unscrewing and stepping.
@@ -209,17 +247,20 @@ task did not have, so they are optional and recorded in `meta.aids`. Turn them
 off for sessions where gaze is the measure of interest, or treat them as a
 factor.
 
-## Known limitations (v0.3)
+## Known limitations (v0.4)
 
 * Physics is light. Objects settle onto the highest support under their
   footprint, but nothing collides while it is held, and an object set down on
   top of a non-support object (a spoon) interpenetrates it.
 * In mouse and webcam modes, held objects stay upright (yaw follows the hand,
   and turning the hand over flips slices). Only WebXR gives full 6-DoF holding.
-* Webcam control has been tested with synthetic landmarks and with a still
-  photo fed in as a camera, not yet with a person making a sandwich. Gains and
-  thresholds (`CARRY`, `LIFT_GAIN`, pinch distances in `src/interact/webcam.js`)
-  are first guesses.
+* Webcam control and its calibration are tested with synthetic landmarks. The
+  fractions that turn measurements into settings (grasp at 20% and release at
+  45% of the pinch range, touch down at 60% of the push; `deriveCal` in
+  `src/interact/webcam.js`) are reasoned choices, not yet tuned on people.
+* The reach step ends when the box has stopped growing for 2.5 s, so a long
+  pause in the middle of the sweep ends it early. The box is drawn live and
+  K redoes it.
 * The headset path (direct joint poses onto the hand mesh) is untested on a
   device.
 * WebXR has no standard eye gaze, so headset sessions use the head ray. Eye gaze

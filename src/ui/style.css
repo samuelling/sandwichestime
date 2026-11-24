@@ -76,3 +76,25 @@ body:has(#touchbar) #toast { bottom:calc(100px + env(safe-area-inset-bottom)); }
 #loading .s { margin-top:12px; color:#b9ad9a; font-size:13px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
 #loading.err .bar { display:none; } #loading.err .s { color:#f0c9b0; text-align:left; }
 #diag { position:fixed; left:10px; top:10px; z-index:39; max-width:min(560px, 92vw); background:rgba(120,30,20,.88); color:#fff; font: 12px ui-monospace, Menlo, monospace; padding:8px 10px; border-radius:8px; white-space:pre-wrap; word-break:break-word; }
+
+/* guided calibration for webcam hand tracking */
+#handcal { position:fixed; inset:0; z-index:18; display:flex; align-items:center; justify-content:center; background:rgba(22,18,14,.93); font: 15px ui-sans-serif, system-ui, sans-serif; color:#efe6d6; }
+#handcal[hidden] { display:none; }
+#handcal .card { width:min(820px, 92vw); max-height:96vh; display:flex; flex-direction:column; gap:10px; }
+#handcal .top { display:flex; align-items:center; justify-content:space-between; }
+#handcal .dots { display:flex; gap:8px; }
+#handcal .dots i { width:34px; height:5px; border-radius:3px; background:rgba(255,255,255,.2); transition:background .25s; }
+#handcal .dots i.on { background:var(--accent); }
+#handcal .dots i.ok { background:#8fd18a; }
+#handcal .count { opacity:.6; font-size:13px; font-variant-numeric: tabular-nums; }
+#handcal h2 { margin:2px 0 0; font: 600 30px ui-sans-serif, system-ui, sans-serif; letter-spacing:-.01em; }
+#handcal .hint { margin:0; min-height:2.9em; line-height:1.45; font-size:16px; color:#d9cdb9; }
+#handcal .stage { position:relative; border-radius:14px; overflow:hidden; box-shadow:0 12px 48px rgba(0,0,0,.5); background:#16130f; }
+#handcal canvas { display:block; width:100%; height:auto; max-height:62vh; object-fit:contain; }
+#handcal .warn { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); max-width:86%; padding:8px 14px; border-radius:999px; background:rgba(20,16,12,.82); color:#ffd9a8; font-size:14px; text-align:center; opacity:0; transition:opacity .25s; pointer-events:none; }
+#handcal .warn.show { opacity:1; }
+#handcal .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+#handcal .note { opacity:.55; font-size:13px; }
+#handcal button { margin-left:8px; padding:7px 14px; border-radius:8px; border:1px solid rgba(255,255,255,.25); background:transparent; color:inherit; font:inherit; font-size:13px; cursor:pointer; }
+#handcal button:hover { background:rgba(255,255,255,.1); }
+#handcal button[hidden] { display:none; }
