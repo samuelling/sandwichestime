@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v4.0.44",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 6126,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 1181,
+      "max": [
+        18958,
+        32767,
+        19894
+      ],
+      "min": [
+        -18958,
+        -32767,
+        -19894
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 1181,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 1181,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "sweet_potato"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 12252,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 2309,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 6126
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 12252,
+      "byteLength": 9448,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 2312,
+          "byteLength": 6600,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 1181
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 21700,
+      "byteLength": 9448,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 8912,
+          "byteLength": 6871,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 1181
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 31148,
+      "byteLength": 4724,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 15784,
+          "byteLength": 3903,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 1181
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "sweet_potato_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/sweet_potato_nor_gl_1k.jpg"
+    },
+    {
+      "name": "sweet_potato_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/sweet_potato_diff_1k.jpg"
+    },
+    {
+      "name": "sweet_potato_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/sweet_potato_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "sweet_potato.bin",
+      "byteLength": 19688
+    },
+    {
+      "byteLength": 35872,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "sweet_potato",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,119 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "sweet_potato_nor_gl",
-      "uri": "textures/sweet_potato_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "sweet_potato_diff",
-      "uri": "textures/sweet_potato_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "sweet_potato_rough",
-      "uri": "textures/sweet_potato_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 1181,
-      "max": [
-        0.029791180044412613,
-        0.048377569764852524,
-        0.02981095388531685
+      "name": "sweet_potato",
+      "translation": [
+        0.0007290448993444443,
+        -0.001853911206126213,
+        -0.0006836950778961182
       ],
-      "min": [
-        -0.028333090245723724,
-        -0.05208539217710495,
-        -0.031178344041109085
+      "scale": [
+        0.05023148097097874,
+        0.05023148097097874,
+        0.05023148097097874
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 1181,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 1181,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 6126,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 14172,
-      "byteOffset": 0,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 14172,
-      "byteOffset": 14172,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 9448,
-      "byteOffset": 28344,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 12252,
-      "byteOffset": 37792,
-      "target": 34963
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 50044,
-      "uri": "sweet_potato.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

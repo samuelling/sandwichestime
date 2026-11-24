@@ -1,57 +1,341 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v3.5.30",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0,
-        1,
-        2
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 132,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 1956,
+      "normalized": false,
+      "byteOffset": 264,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 36,
+      "max": [
+        12881,
+        32767,
+        10313
+      ],
+      "min": [
+        -12881,
+        -32767,
+        -10313
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 36,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 36,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 419,
+      "max": [
+        32767,
+        31915,
+        32767
+      ],
+      "min": [
+        -32767,
+        -31915,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 4
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 419,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 5
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 419,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 6
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 419,
+      "max": [
+        32767,
+        14357,
+        32767
+      ],
+      "min": [
+        -32767,
+        -14357,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 7
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 419,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 8
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "russian_food_cans_01_salt_box"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 4176,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 821,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 2088
+        }
+      }
     },
     {
-      "mesh": 1,
-      "name": "russian_food_cans_01_can_cond",
-      "translation": [
-        0.04999999701976776,
-        0,
-        0
-      ]
+      "buffer": 1,
+      "byteOffset": 4176,
+      "byteLength": 288,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 824,
+          "byteLength": 208,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 36
+        }
+      }
     },
     {
-      "mesh": 2,
-      "name": "russian_food_cans_01_can_fish",
-      "translation": [
-        -0.04999999701976776,
-        0,
-        0
-      ]
+      "buffer": 1,
+      "byteOffset": 4464,
+      "byteLength": 144,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 1032,
+          "byteLength": 171,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 36
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 4608,
+      "byteLength": 288,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 1204,
+          "byteLength": 216,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 36
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 4896,
+      "byteLength": 3352,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 1420,
+          "byteLength": 2097,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 419
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 8248,
+      "byteLength": 1676,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 3520,
+          "byteLength": 1336,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 419
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 9924,
+      "byteLength": 3352,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 4856,
+          "byteLength": 2398,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 419
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 13276,
+      "byteLength": 3352,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 7256,
+          "byteLength": 2096,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 419
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 16628,
+      "byteLength": 1676,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 9352,
+          "byteLength": 1330,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 419
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "russian_food_cans_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/russian_food_cans_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "russian_food_cans_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/russian_food_cans_01_diff_1k.jpg"
+    },
+    {
+      "name": "russian_food_cans_01_metallic-russian_food_cans_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/russian_food_cans_01_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "russian_food_cans_01.bin",
+      "byteLength": 10684
+    },
+    {
+      "byteLength": 18304,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "russian_food_cans_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
         "baseColorTexture": {
-          "index": 1
+          "index": 0
         },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -61,12 +345,13 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "TEXCOORD_0": 1,
-            "NORMAL": 2
+            "POSITION": 2,
+            "TEXCOORD_0": 3,
+            "NORMAL": 4
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     },
@@ -75,12 +360,13 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 4,
-            "TEXCOORD_0": 5,
-            "NORMAL": 6
+            "POSITION": 5,
+            "TEXCOORD_0": 6,
+            "NORMAL": 7
           },
-          "indices": 7,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 1
         }
       ]
     },
@@ -91,221 +377,76 @@
           "attributes": {
             "POSITION": 8,
             "TEXCOORD_0": 9,
-            "NORMAL": 10
+            "NORMAL": 7
           },
-          "indices": 7,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 1
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "russian_food_cans_01_nor_gl",
-      "uri": "textures/russian_food_cans_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "russian_food_cans_01_diff",
-      "uri": "textures/russian_food_cans_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "russian_food_cans_01_metallic-russian_food_cans_01_rough",
-      "uri": "textures/russian_food_cans_01_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 36,
-      "max": [
-        0.016686130315065384,
-        0.08489999175071716,
-        0.013358032330870628
-      ],
-      "min": [
-        -0.016686130315065384,
+      "name": "russian_food_cans_01_salt_box",
+      "translation": [
         0,
-        -0.013358032330870628
+        0.04244999587535858,
+        0
       ],
-      "type": "VEC3"
+      "scale": [
+        0.04244999587535858,
+        0.04244999587535858,
+        0.04244999587535858
+      ],
+      "mesh": 0
     },
     {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 36,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 36,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 132,
-      "type": "SCALAR"
-    },
-    {
-      "bufferView": 4,
-      "componentType": 5126,
-      "count": 419,
-      "max": [
+      "name": "russian_food_cans_01_can_cond",
+      "translation": [
+        0.04999999701976776,
+        0.018750010058283806,
+        0
+      ],
+      "scale": [
         0.019251631572842598,
-        0.03750002011656761,
+        0.019251631572842598,
         0.019251631572842598
       ],
-      "min": [
-        -0.019251631572842598,
-        0,
-        -0.019251631572842598
+      "mesh": 1
+    },
+    {
+      "name": "russian_food_cans_01_can_fish",
+      "translation": [
+        -0.04999999701976776,
+        0.010122423060238361,
+        0
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 5,
-      "componentType": 5126,
-      "count": 419,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 6,
-      "componentType": 5126,
-      "count": 419,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 7,
-      "componentType": 5123,
-      "count": 1956,
-      "type": "SCALAR"
-    },
-    {
-      "bufferView": 8,
-      "componentType": 5126,
-      "count": 419,
-      "max": [
+      "scale": [
         0.023101959377527237,
-        0.020244846120476723,
+        0.023101959377527237,
         0.023101959377527237
       ],
-      "min": [
-        -0.023101959377527237,
+      "mesh": 2
+    }
+  ],
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
         0,
-        -0.023101959377527237
-      ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 9,
-      "componentType": 5126,
-      "count": 419,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 10,
-      "componentType": 5126,
-      "count": 419,
-      "type": "VEC3"
+        1,
+        2
+      ]
     }
   ],
-  "bufferViews": [
-    {
-      "buffer": 0,
-      "byteLength": 432,
-      "byteOffset": 0,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 288,
-      "byteOffset": 432,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 432,
-      "byteOffset": 720,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 264,
-      "byteOffset": 1152,
-      "target": 34963
-    },
-    {
-      "buffer": 0,
-      "byteLength": 5028,
-      "byteOffset": 1416,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 3352,
-      "byteOffset": 6444,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 5028,
-      "byteOffset": 9796,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 3912,
-      "byteOffset": 14824,
-      "target": 34963
-    },
-    {
-      "buffer": 0,
-      "byteLength": 5028,
-      "byteOffset": 18736,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 3352,
-      "byteOffset": 23764,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 5028,
-      "byteOffset": 27116,
-      "target": 34962
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
-  ],
-  "buffers": [
-    {
-      "byteLength": 32144,
-      "uri": "russian_food_cans_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

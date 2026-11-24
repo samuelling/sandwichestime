@@ -60,9 +60,15 @@ examples/               autopilot reference sessions
 
 Any setup field can be prefilled in the URL, for example `?participant=p07&condition=tidy&layout=stored&seed=12&input=webcam&gaze=webcam`. Add `&auto=1` to skip the form. `&fast=N` runs N fixed 1/60 s simulation steps per frame, for headless autopilot runs.
 
+## Loading and texture detail
+
+The default download is about 14 MB: meshopt-compressed geometry (5 MB) plus the standard texture set in `assets/lite/` (512 px props, 6 MB). "High" texture detail in the setup form uses the 1k originals instead (about 55 MB more). A loading screen shows progress, and start-up or graphics failures are reported on screen rather than as a blank canvas.
+
+After changing assets: `python3 tools/fetch_assets.py --force`, then `sh tools/compress_models.sh` and `python3 tools/make_lite.py`. `sh tools/check_syntax.sh` parses every module.
+
 ## Phones and tablets
 
-On a touch device the page picks touch controls, a low-memory asset set (`assets/lite/`, about 6 MB of textures instead of about 75 MB) and no post-processing by itself; on a phone it also thins the distractors. Portrait works (the view widens to keep the counter in frame), and landscape shows more. Rebuild the lite set with `python3 tools/make_lite.py` after changing assets.
+On a touch device the page picks touch controls and no post-processing by itself; on a phone it also thins the distractors. Portrait works (the view widens to keep the counter in frame), and landscape shows more.
 
 ## Testing the controls
 

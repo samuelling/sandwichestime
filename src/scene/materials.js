@@ -3,9 +3,9 @@
 import * as THREE from 'three';
 
 const loader = new THREE.TextureLoader();
-// 'lite' serves reduced-resolution copies of the scanned textures (assets/lite/, see tools/make_lite.py) for phones
-export let ASSET_BASE = 'assets/';
-export function setAssetDetail(detail) { ASSET_BASE = detail === 'lite' ? 'assets/lite/' : 'assets/'; }
+// Scanned textures come in two sizes: 'standard' (assets/lite/: 512 px props, 1k room; about 6 MB) and 'high' (assets/: the 1k originals, about 62 MB).
+export let ASSET_BASE = 'assets/lite/';
+export function setAssetDetail(detail) { ASSET_BASE = detail === 'high' || detail === 'full' ? 'assets/' : 'assets/lite/'; }
 let maxAniso = 8;
 export function setMaxAnisotropy(a) { maxAniso = a; }
 

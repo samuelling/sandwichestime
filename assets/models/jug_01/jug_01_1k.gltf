@@ -1,37 +1,188 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v3.2.40",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 17310,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3202,
+      "max": [
+        32767,
+        25151,
+        19938
+      ],
+      "min": [
+        -32767,
+        -25151,
+        -19938
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3202,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 3202,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "jug_01"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 34620,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 6487,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 17310
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 34620,
+      "byteLength": 25616,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 6488,
+          "byteLength": 15911,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3202
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 60236,
+      "byteLength": 25616,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 22400,
+          "byteLength": 17833,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3202
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 85852,
+      "byteLength": 12808,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 40236,
+          "byteLength": 9876,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 3202
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "jug_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/jug_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "jug_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/jug_01_diff_1k.jpg"
+    },
+    {
+      "name": "jug_01_metal-jug_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/jug_01_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "jug_01.bin",
+      "byteLength": 50112
+    },
+    {
+      "byteLength": 98660,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "jug_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
         "baseColorTexture": {
-          "index": 1
+          "index": 0
         },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -41,115 +192,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "jug_01_nor_gl",
-      "uri": "textures/jug_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "jug_01_diff",
-      "uri": "textures/jug_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "jug_01_metal-jug_01_rough",
-      "uri": "textures/jug_01_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 3202,
-      "max": [
-        0.12299630045890808,
-        0.21155454218387604,
-        0.08376311510801315
+      "name": "jug_01",
+      "translation": [
+        -0.014664530754089355,
+        0.10589781643648166,
+        0
       ],
-      "min": [
-        -0.1523253619670868,
-        0.0002410906890872866,
-        -0.08376311510801315
+      "scale": [
+        0.13766083121299744,
+        0.13766083121299744,
+        0.13766083121299744
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 3202,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 3202,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 17310,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 38424,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 38424,
-      "byteOffset": 38424
-    },
-    {
-      "buffer": 0,
-      "byteLength": 25616,
-      "byteOffset": 76848
-    },
-    {
-      "buffer": 0,
-      "byteLength": 34620,
-      "byteOffset": 102464
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 137084,
-      "uri": "jug_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

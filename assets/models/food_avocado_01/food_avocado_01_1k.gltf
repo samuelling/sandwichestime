@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v1.6.16",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 23229,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4170,
+      "max": [
+        21774,
+        32767,
+        21634
+      ],
+      "min": [
+        -21774,
+        -32767,
+        -21634
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4170,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 4170,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "food_avocado_01"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 46458,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 8950,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 23229
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 46460,
+      "byteLength": 33360,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 8952,
+          "byteLength": 20107,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4170
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 79820,
+      "byteLength": 33360,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 29060,
+          "byteLength": 24037,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4170
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 113180,
+      "byteLength": 16680,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 53100,
+          "byteLength": 12885,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 4170
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "food_avocado_01_nor_gl.png",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_avocado_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "food_avocado_01_diff.png",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_avocado_01_diff_1k.jpg"
+    },
+    {
+      "name": "food_avocado_01_rough.png",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_avocado_01_rough_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "food_avocado_01.bin",
+      "byteLength": 65988
+    },
+    {
+      "byteLength": 129860,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "food_avocado_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,115 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_avocado_01_nor_gl.png",
-      "uri": "textures/food_avocado_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_avocado_01_diff.png",
-      "uri": "textures/food_avocado_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_avocado_01_rough.png",
-      "uri": "textures/food_avocado_01_rough_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 4170,
-      "max": [
-        0.04597127065062523,
-        0.14350612461566925,
-        0.04536880925297737
+      "name": "food_avocado_01",
+      "translation": [
+        -0.0016216840595006943,
+        0.07188888365635648,
+        -0.0019145887345075607
       ],
-      "min": [
-        -0.04921463876962662,
-        0.0002716426970437169,
-        -0.04919798672199249
+      "scale": [
+        0.07161724095931277,
+        0.07161724095931277,
+        0.07161724095931277
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 4170,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 4170,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 23229,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 50040,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 50040,
-      "byteOffset": 50040
-    },
-    {
-      "buffer": 0,
-      "byteLength": 33360,
-      "byteOffset": 100080
-    },
-    {
-      "buffer": 0,
-      "byteLength": 46458,
-      "byteOffset": 133440
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 179900,
-      "uri": "food_avocado_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

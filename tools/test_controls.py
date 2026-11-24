@@ -100,7 +100,7 @@ async def touch(a):
             def __setitem__(self, k, v): print('  ok ' if v else '  XX ', k, flush=True); super().__setitem__(k, v)
         types = lambda: ev("return S.logger.events.map(e => e.type);")
         out = Out()
-        out['phone picks touch controls and the lite assets'] = await ev("return S.cfg.input === 'touch' && S.logger.meta.detail === 'lite' && !!document.getElementById('touchbar');")
+        out['phone picks touch controls'] = await ev("return S.cfg.input === 'touch' && S.logger.meta.detail === 'standard' && !!document.getElementById('touchbar');")
         await tap(await px("pos(T.bag.clip)"))
         out['tap grabs the clip, bag opens'] = await ev("return h.holding?.id === 'bread_clip' && T.bag.state.open;")
         await tap(await px("new V3(0.42, 0.91, -0.08)"))
@@ -127,12 +127,17 @@ async def touch(a):
         await tap(kp or await px("T.knife.root.localToWorld(T.knife.geom.grip.clone())"))
         out['tap grabs the knife'] = await ev("return h.holding?.id === 'knife';")
         if not out['tap grabs the knife']: print(await ev("return JSON.stringify({ holding: h.holding?.id, hint: h.pickHint?.id, grip: h.grip.toArray(), knife: pos(T.knife).toArray(), body: S.body.x, last: S.logger.events.slice(-4).map(e => [e.type, e.obj || e.near || '', e.on || '']) });"))
+        # the jar may be beyond the right arm's reach from where we stand: step toward it first, as a person would
+        dx = await ev("return pos(T.pb).x - S.body.x;")
+        if dx < -0.1: await btn('left'); await sim(1.2)
+        out['stepping keeps the knife in hand'] = await ev("return h.holding?.id === 'knife';")
         # where the finger must be so that the blade (not the hand) is over a target: blade offset from the grip, measured live
         aim = lambda target: px(f"(() => {{ const k = T.knife, b = k.root.localToWorld(k.geom.bladeSamples[3].clone()).sub(h.grip); const t = {target}; return new V3(t.x - b.x, 0.91, t.z - b.z); }})()")
         start = await px("h.grip.clone().setY(0.91)"); j = await aim("pos(T.pb)")
         await drag([(start[0], start[1] + 44), (j[0], j[1] + 44)], 0.5); await sim(0.6)
         await btn('press'); await sim(1.3)
         out['Press lowers the knife into the jar and loads it'] = await ev("return T.knife.state.substance === 'pb' && T.knife.state.load > 0.5;")
+        if not out['Press lowers the knife into the jar and loads it']: print(await ev("const k = T.knife; return JSON.stringify({ holding: h.holding?.id, press: h.press, blade: k.root.localToWorld(k.geom.bladeSamples[3].clone()).toArray().map(v => +v.toFixed(3)), jar: pos(T.pb).toArray().map(v => +v.toFixed(3)), open: T.pb.state.open, surf: T.pb.state.surfaceY, grip: h.grip.toArray().map(v => +v.toFixed(3)), body: S.body.x, last: S.logger.events.slice(-5).map(e => [e.type, e.obj || e.jar || '', e.on || '']) });"))
         await btn('press'); await sim(0.5)
         sl = "pos([...S.world.entities.values()].find(e => e.kind === 'slice' && e.restingOn === 'plate'))"
         s0 = await aim(sl); await drag([(j[0], j[1] + 44), (s0[0], s0[1] + 44)], 0.5); await sim(0.5)

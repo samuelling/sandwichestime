@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v3.6.27",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 19728,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5126,
+      "count": 3554,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3554,
+      "max": [
+        10229,
+        2964,
+        32767
+      ],
+      "min": [
+        -10229,
+        -2964,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3554,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "wooden_spoon"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 39456,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 7391,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 19728
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 39456,
+      "byteLength": 28432,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 7392,
+          "byteLength": 19357,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3554
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 67888,
+      "byteLength": 28432,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 26752,
+          "byteLength": 15608,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3554
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 96320,
+      "byteLength": 28432,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 42360,
+          "byteLength": 18333,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3554
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "wooden_spoon_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/wooden_spoon_nor_gl_1k.jpg"
+    },
+    {
+      "name": "wooden_spoon_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/wooden_spoon_diff_1k.jpg"
+    },
+    {
+      "name": "wooden_spoon_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/wooden_spoon_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "wooden_spoon.bin",
+      "byteLength": 60696
+    },
+    {
+      "byteLength": 124752,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "wooden_spoon",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,119 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "TEXCOORD_0": 1,
+            "POSITION": 2,
+            "NORMAL": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "wooden_spoon_nor_gl",
-      "uri": "textures/wooden_spoon_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "wooden_spoon_diff",
-      "uri": "textures/wooden_spoon_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "wooden_spoon_rough",
-      "uri": "textures/wooden_spoon_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 3554,
-      "max": [
-        0.04293268918991089,
-        0.009082847274839878,
-        0.08387435972690582
+      "name": "wooden_spoon",
+      "translation": [
+        -0.00039736367762088776,
+        -0.0034739156253635883,
+        -0.054943181574344635
       ],
-      "min": [
-        -0.043727416545152664,
-        -0.016030678525567055,
-        -0.1937607228755951
+      "scale": [
+        0.13881754130125046,
+        0.13881754130125046,
+        0.13881754130125046
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 3554,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 3554,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 19728,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 42648,
-      "byteOffset": 0,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 42648,
-      "byteOffset": 42648,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 28432,
-      "byteOffset": 85296,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 39456,
-      "byteOffset": 113728,
-      "target": 34963
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 153184,
-      "uri": "wooden_spoon.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

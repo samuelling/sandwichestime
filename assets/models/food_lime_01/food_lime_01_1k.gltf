@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v1.6.16",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 24300,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4375,
+      "max": [
+        26091,
+        32767,
+        26643
+      ],
+      "min": [
+        -26091,
+        -32767,
+        -26643
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4375,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 4375,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "food_lime_01"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 48600,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 9359,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 24300
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 48600,
+      "byteLength": 35000,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 9360,
+          "byteLength": 21436,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4375
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 83600,
+      "byteLength": 35000,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 30796,
+          "byteLength": 25028,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4375
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 118600,
+      "byteLength": 17500,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 55824,
+          "byteLength": 13447,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 4375
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "food_lime_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_lime_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "food_lime_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_lime_01_diff_1k.jpg"
+    },
+    {
+      "name": "food_lime_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_lime_01_rough_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "food_lime_01.bin",
+      "byteLength": 69272
+    },
+    {
+      "byteLength": 136100,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "food_lime_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,115 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_lime_01_nor_gl",
-      "uri": "textures/food_lime_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_lime_01_diff",
-      "uri": "textures/food_lime_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_lime_01_rough",
-      "uri": "textures/food_lime_01_rough_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 4375,
-      "max": [
-        0.029137466102838516,
-        0.07557447254657745,
-        0.02829606644809246
+      "name": "food_lime_01",
+      "translation": [
+        -0.0008975835517048836,
+        0.037853890884434804,
+        -0.0023729028180241585
       ],
-      "min": [
-        -0.030932633206248283,
-        0.00013330922229215503,
-        -0.03304187208414078
+      "scale": [
+        0.03772058166214265,
+        0.03772058166214265,
+        0.03772058166214265
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 4375,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 4375,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 24300,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 52500,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 52500,
-      "byteOffset": 52500
-    },
-    {
-      "buffer": 0,
-      "byteLength": 35000,
-      "byteOffset": 105000
-    },
-    {
-      "buffer": 0,
-      "byteLength": 48600,
-      "byteOffset": 140000
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 188600,
-      "uri": "food_lime_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

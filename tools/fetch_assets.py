@@ -6,6 +6,9 @@ that already exist with the right size are skipped.
 
     python3 tools/fetch_assets.py            # models + textures + hdri
     python3 tools/fetch_assets.py --dry-run  # report sizes only
+    python3 tools/fetch_assets.py --force    # re-download everything
+
+Afterwards: sh tools/compress_models.sh (meshopt geometry) and python3 tools/make_lite.py (standard-detail textures).
 """
 import json, os, sys, urllib.request, argparse
 
@@ -41,6 +44,7 @@ TEXTURES = {  # id -> (res, maps)
 HDRIS = {"lythwood_room": "1k"}
 
 
+FORCE = False
 UA = {"User-Agent": "sandwichestime-asset-fetch/1.0 (research; CC0 assets)"}
 
 
@@ -54,7 +58,7 @@ def get_json(url):
 
 
 def download(url, dest, size=None, dry=False):
-    if os.path.exists(dest) and (size is None or os.path.getsize(dest) == size):
+    if os.path.exists(dest) and not FORCE:      # geometry is recompressed after download, so sizes no longer match the originals
         return 0
     if dry:
         return size or 0
@@ -68,7 +72,10 @@ def download(url, dest, size=None, dry=False):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true", help="re-download files that already exist")
     a = ap.parse_args()
+    global FORCE
+    FORCE = a.force
     manifest = {"license": "CC0 1.0 — Poly Haven (polyhaven.com)", "models": {}, "textures": {}, "hdri": {}}
     total = 0
     for mid, res in MODELS.items():

@@ -54,10 +54,10 @@
           <option value="socket">external eye tracker (WebSocket)</option>
           <option value="mouse">mouse as gaze (debug only)</option>
         </select></label>
-      <label>Detail
+      <label>Texture detail
         <select name="detail">
-          <option value="full">full</option>
-          <option value="lite">lite (phones: smaller textures)</option>
+          <option value="standard">standard (fast to load)</option>
+          <option value="high">high (about 55 MB more to download)</option>
         </select></label>
       <label>Hand appearance
         <select name="handtone">
@@ -108,6 +108,8 @@
   </details>
   <p class="foot">Assets: CC0 photoscans from <a href="https://polyhaven.com" target="_blank">Poly Haven</a>. Data stays in your browser unless you set an upload endpoint.</p>
 </div>
+
+<div id="loading" hidden><div class="box"><div class="t">Setting up the kitchen…</div><div class="bar"><i></i></div><div class="s"></div></div></div>
 
 <div id="hud" hidden>
   <div id="instruction"></div>

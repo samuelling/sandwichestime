@@ -8,7 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { World } from './core/world.js';
 import { buildMaterials, setMaxAnisotropy, setAssetDetail } from './scene/materials.js';
 import { buildKitchen } from './scene/kitchen.js';
-import { buildLayout } from './scene/layout.js';
+import { buildLayout, modelManager } from './scene/layout.js';
 import { Hand, HandRig } from './interact/hand.js';
 import { Manipulator } from './interact/manip.js';
 import { MouseInput, Body } from './interact/mouse.js';
@@ -32,10 +32,27 @@ const params = new URLSearchParams(location.search);
 const form = $('#setup');
 // Phones and tablets: touch controls, the low-memory asset set and no post-processing by default (URL parameters still override).
 const coarse = matchMedia('(pointer: coarse)').matches, small = Math.min(screen.width, screen.height) < 700;
-if (coarse) { form.elements.input.value = 'touch'; form.elements.detail.value = 'lite'; form.elements.quality.checked = false; form.elements.saliency.checked = false; if (small) form.elements.distractors.value = 'sparse'; }
+if (coarse) { form.elements.input.value = 'touch'; form.elements.quality.checked = false; form.elements.saliency.checked = false; if (small) form.elements.distractors.value = 'sparse'; }
 for (const [k, v] of params) { const el = form.elements[k]; if (el) { if (el.type === 'checkbox') el.checked = v !== '0'; else { if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; } } }
-form.addEventListener('submit', e => { e.preventDefault(); start(readConfig()).catch(err => { console.error(err); alert('Could not start: ' + err.message); }); });
-if (params.get('auto') === '1') queueMicrotask(() => start(readConfig()).catch(e => { console.error(e); window.__error = String(e.stack || e); }));
+// ---- loading screen and visible errors: nothing should ever fail as a silent black screen ----
+const loadEl = $('#loading');
+const loading = {
+  show(title) { loadEl.hidden = false; loadEl.classList.remove('err'); loadEl.querySelector('.t').textContent = title; },
+  progress(done, total, note) { loadEl.querySelector('.bar i').style.width = `${total ? Math.round(100 * done / total) : 0}%`; loadEl.querySelector('.s').textContent = note ?? `${done} of ${total} files`; },
+  hide() { if (!loadEl.classList.contains('err')) loadEl.hidden = true; },
+  fatal(msg) { loadEl.hidden = false; loadEl.classList.add('err'); loadEl.querySelector('.t').textContent = 'Could not start the kitchen'; loadEl.querySelector('.s').textContent = `${msg}\n\nReload to try again. If it keeps happening, send this message along.`; },
+};
+const problems = [];
+function report(msg) {       // non-fatal: keep running, but say so on screen
+  msg = String(msg).slice(0, 400); if (problems.includes(msg) || problems.length >= 4) return; problems.push(msg); console.error('[sandwichestime]', msg);
+  let el = $('#diag'); if (!el) { el = document.createElement('div'); el.id = 'diag'; document.body.appendChild(el); }
+  el.textContent = problems.join('\n'); window.__problems = problems;
+}
+addEventListener('error', e => report(`${e.message} (${String(e.filename || '').split('/').pop()}:${e.lineno})`));
+addEventListener('unhandledrejection', e => report(e.reason?.message || e.reason));
+const launch = () => start(readConfig()).catch(err => { console.error(err); window.__error = String(err.stack || err); loading.fatal(err.message || String(err)); });
+form.addEventListener('submit', e => { e.preventDefault(); launch(); });
+if (params.get('auto') === '1') queueMicrotask(launch);
 
 function readConfig() {
   const f = new FormData(form), c = Object.fromEntries(f.entries());
@@ -46,12 +63,19 @@ function readConfig() {
 
 async function start(cfg) {
   $('#landing').hidden = true;
+  loading.show('Setting up the kitchen…'); loading.progress(0, 1, 'Starting…');
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));      // let the loading screen paint before the heavy work
+  const counts = new Map(), tick = m => (url, done, total) => { counts.set(m, [done, total]); let d = 0, t = 0; for (const [a, b] of counts.values()) { d += a; t += b; } loading.progress(d, t); };
+  THREE.DefaultLoadingManager.onProgress = tick('default'); modelManager.onProgress = tick('models');
+  const slow = setTimeout(() => { const el = loadEl.querySelector('.t'); if (!loadEl.hidden && !loadEl.classList.contains('err')) el.textContent = 'Still loading… (slow connection?)'; }, 25000);
   const canvas = $('#view');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(+params.get('pr') || (params.get('fast') ? 0.5 : Math.min(devicePixelRatio, 2))); renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.xr.enabled = cfg.input === 'xr';
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); loading.fatal('The browser dropped the graphics context, usually because it ran out of memory. Try fewer distractors, standard texture detail, or switching off high-quality rendering.'); });
+  renderer.debug.onShaderError = (gl, program, vs, fs) => { const log = gl.getProgramInfoLog(program) || gl.getShaderInfoLog(fs) || gl.getShaderInfoLog(vs) || 'unknown'; report('Shader failed to compile: ' + log); };
   setMaxAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0xd9d2c6);
   const camera = new THREE.PerspectiveCamera(56, innerWidth / innerHeight, 0.03, 30);
@@ -75,6 +99,7 @@ async function start(cfg) {
     scene.environment = roomEnv.texture; scene.environmentIntensity = 0.9;
   }
   pmrem.dispose();
+  clearTimeout(slow);
 
   // hands
   const hands = [new Hand('L'), new Hand('R')];
@@ -83,7 +108,7 @@ async function start(cfg) {
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'full', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.3' };
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.3.1' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;
@@ -105,8 +130,10 @@ async function start(cfg) {
   let preview = null;
   if (cfg.input === 'webcam') {
     webcamHands = new WebcamHands(vision, hands, body, world.bus, new Reacher(camera, world, manip, body));
+    webcamHands.reacher.onLimit = () => toast('Out of reach: step sideways or use the other hand', 2600);
     if (params.get('preview') !== '0') preview = new CamPreview(vision, webcamHands);
   }
+  if (input?.reacher) input.reacher.onLimit = () => toast('Out of reach: step sideways or use the other hand', 2600);
   if (cfg.input === 'xr') xrHands = new XRHands(renderer, scene, hands, world.bus);
   const aids = cfg.aids !== 'off' && cfg.input !== 'autopilot' ? new GraspAids(scene, world, hands, manip, camera) : null;
   meta.aids = !!aids; meta.handtone = cfg.handtone || 'neutral';
@@ -173,7 +200,7 @@ async function start(cfg) {
   const taskEntities = [...world.entities.values()].filter(e => e.role !== 'fixture' || e.constraint);
   // ?fast=N runs N fixed 1/60 s simulation steps per rendered frame (autopilot / headless tests)
   const simSteps = +(params.get('fast') || 0);
-  let lastT = performance.now(), frameNo = 0;
+  let lastT = performance.now(), frameNo = 0, shown = false;
   function step(dt, tms, simulated) {
     const tAbs = performance.now() / 1000;
     if (tTrial !== null && !ended) { tTrial = simulated ? tTrial + dt : logger.rel(tAbs); world.clockT = tTrial; }
@@ -209,7 +236,9 @@ async function start(cfg) {
     if (input && !ended) { const h = hands[input.active]; $('#hand-ind').textContent = `${h.side === 'L' ? 'left' : 'right'} hand${h.holding ? ` · holding ${h.holding.id}` : h.hover ? ` · ${h.hover.id}` : ''}`; }
     frameNo++;
     if (simSteps && frameNo % 20 !== 1 && !ended) return; // fast mode: simulate, render occasionally
-    if (composer && !renderer.xr.isPresenting) composer.render(); else renderer.render(scene, camera);
+    try { if (composer && !renderer.xr.isPresenting) composer.render(); else renderer.render(scene, camera); }
+    catch (err) { if (composer) { composer = null; report('High-quality rendering failed and was switched off: ' + err.message); } else { report('Rendering failed: ' + err.message); } }
+    if (!shown) { shown = true; loading.hide(); }
   });
   // ---- calibration (with the scene already live), then start the trial ----
   (async () => {

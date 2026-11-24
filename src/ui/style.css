@@ -65,3 +65,14 @@ body:has(#touchbar) #toast { bottom:calc(100px + env(safe-area-inset-bottom)); }
 }
 @media (max-height: 520px) { #instruction { font-size:12px; padding:5px 12px; top:calc(6px + env(safe-area-inset-top)); } }
 #instruction { transition:opacity 1s; } #instruction.dim { opacity:.28; }
+
+/* loading and error overlay */
+#loading { position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; background:#1c1814; color:#efe6d6; font: 15px ui-sans-serif, system-ui, sans-serif; }
+#loading[hidden] { display:none; }
+#loading .box { width:min(440px, 84vw); text-align:center; }
+#loading .t { font: 600 26px "Iowan Old Style", Georgia, serif; margin-bottom:16px; }
+#loading .bar { height:6px; border-radius:3px; background:rgba(255,255,255,.14); overflow:hidden; }
+#loading .bar i { display:block; height:100%; width:0; background:var(--accent); transition:width .25s; }
+#loading .s { margin-top:12px; color:#b9ad9a; font-size:13px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
+#loading.err .bar { display:none; } #loading.err .s { color:#f0c9b0; text-align:left; }
+#diag { position:fixed; left:10px; top:10px; z-index:39; max-width:min(560px, 92vw); background:rgba(120,30,20,.88); color:#fff; font: 12px ui-monospace, Menlo, monospace; padding:8px 10px; border-radius:8px; white-space:pre-wrap; word-break:break-word; }

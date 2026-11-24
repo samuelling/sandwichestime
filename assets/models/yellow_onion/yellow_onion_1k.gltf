@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v4.1.63",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "blend_export",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 16332,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3349,
+      "max": [
+        27499,
+        32767,
+        26039
+      ],
+      "min": [
+        -27499,
+        -32767,
+        -26039
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3349,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 3349,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "yellow_onion"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 32664,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 6208,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 16332
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 32664,
+      "byteLength": 26792,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 6208,
+          "byteLength": 16600,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3349
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 59456,
+      "byteLength": 26792,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 22808,
+          "byteLength": 20017,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3349
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 86248,
+      "byteLength": 13396,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 42828,
+          "byteLength": 10326,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 3349
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "yellow_onion_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/yellow_onion_nor_gl_1k.jpg"
+    },
+    {
+      "name": "yellow_onion_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/yellow_onion_diff_1k.jpg"
+    },
+    {
+      "name": "yellow_onion_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/yellow_onion_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "yellow_onion.bin",
+      "byteLength": 53156
+    },
+    {
+      "byteLength": 99644,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "yellow_onion",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,119 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "yellow_onion_nor_gl",
-      "uri": "textures/yellow_onion_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "yellow_onion_diff",
-      "uri": "textures/yellow_onion_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "yellow_onion_rough",
-      "uri": "textures/yellow_onion_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 3349,
-      "max": [
-        0.03567872196435928,
-        0.08610223233699799,
-        0.03121955133974552
+      "name": "yellow_onion",
+      "translation": [
+        -0.0005624797195196152,
+        0.04291439245571382,
+        -0.003098738379776478
       ],
-      "min": [
-        -0.036803681403398514,
-        -0.00027344742557033896,
-        -0.03741702809929848
+      "scale": [
+        0.04318783988128416,
+        0.04318783988128416,
+        0.04318783988128416
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 3349,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 3349,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 16332,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 40188,
-      "byteOffset": 0,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 40188,
-      "byteOffset": 40188,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 26792,
-      "byteOffset": 80376,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 32664,
-      "byteOffset": 107168,
-      "target": 34963
+      "name": "blend_export",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 139832,
-      "uri": "yellow_onion.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

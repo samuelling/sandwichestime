@@ -1,37 +1,188 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v1.7.33",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 13020,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 2603,
+      "max": [
+        13937,
+        3828,
+        32767
+      ],
+      "min": [
+        -13937,
+        -3828,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 2603,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 2603,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "brass_pan_01"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 26040,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 5066,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 13020
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 26040,
+      "byteLength": 20824,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 5068,
+          "byteLength": 11133,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 2603
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 46864,
+      "byteLength": 20824,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 16204,
+          "byteLength": 14546,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 2603
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 67688,
+      "byteLength": 10412,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 30752,
+          "byteLength": 7821,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 2603
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "brass_pan_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/brass_pan_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "brass_pan_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/brass_pan_01_diff_1k.jpg"
+    },
+    {
+      "name": "brass_pan_01_metal-brass_pan_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/brass_pan_01_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "brass_pan_01.bin",
+      "byteLength": 38576
+    },
+    {
+      "byteLength": 78100,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "brass_pan_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
         "baseColorTexture": {
-          "index": 1
+          "index": 0
         },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -41,115 +192,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "brass_pan_01_nor_gl",
-      "uri": "textures/brass_pan_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "brass_pan_01_diff",
-      "uri": "textures/brass_pan_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "brass_pan_01_metal-brass_pan_01_rough",
-      "uri": "textures/brass_pan_01_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 2603,
-      "max": [
-        0.09614318609237671,
-        0.05251114442944527,
-        0.09747844934463501
+      "name": "brass_pan_01",
+      "translation": [
+        0.0005080066621303558,
+        0.026256451674271375,
+        -0.12735386192798615
       ],
-      "min": [
-        -0.095127172768116,
-        0.0000017589190974831581,
-        -0.3521861732006073
+      "scale": [
+        0.22483231127262115,
+        0.22483231127262115,
+        0.22483231127262115
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 2603,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 2603,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 13020,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 31236,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 31236,
-      "byteOffset": 31236
-    },
-    {
-      "buffer": 0,
-      "byteLength": 20824,
-      "byteOffset": 62472
-    },
-    {
-      "buffer": 0,
-      "byteLength": 26040,
-      "byteOffset": 83296
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 109336,
-      "uri": "brass_pan_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

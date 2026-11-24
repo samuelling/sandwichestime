@@ -1,43 +1,188 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v1.6.16",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 43119,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 29091,
+      "max": [
+        21218,
+        32767,
+        21094
+      ],
+      "min": [
+        -21218,
+        -32767,
+        -21094
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 29091,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 29091,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "bar_chair_round_01",
-      "rotation": [
-        0,
-        0.7071068286895752,
-        0,
-        0.7071068286895752
-      ]
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 86238,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 14397,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 43119
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 86240,
+      "byteLength": 232728,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 14400,
+          "byteLength": 135178,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 29091
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 318968,
+      "byteLength": 232728,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 149580,
+          "byteLength": 168666,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 29091
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 551696,
+      "byteLength": 116364,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 318248,
+          "byteLength": 83156,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 29091
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "bar_chair_round_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/bar_chair_round_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "bar_chair_round_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/bar_chair_round_01_diff_1k.jpg"
+    },
+    {
+      "name": "bar_chair_round_01_metal-bar_chair_round_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/bar_chair_round_01_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "bar_chair_round_01.bin",
+      "byteLength": 401404
+    },
+    {
+      "byteLength": 668060,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "Bar Chair",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
         "baseColorTexture": {
-          "index": 1
+          "index": 0
         },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -47,115 +192,54 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "bar_chair_round_01_nor_gl",
-      "uri": "textures/bar_chair_round_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "bar_chair_round_01_diff",
-      "uri": "textures/bar_chair_round_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "bar_chair_round_01_metal-bar_chair_round_01_rough",
-      "uri": "textures/bar_chair_round_01_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 29091,
-      "max": [
-        0.24440668523311615,
-        0.7505773305892944,
-        0.2544180750846863
+      "name": "bar_chair_round_01",
+      "translation": [
+        0.012842977093129117,
+        0.3753030994357687,
+        -0.0014088321999286624
       ],
-      "min": [
-        -0.2415890246629715,
-        0.000028868282242910936,
-        -0.2287321239709854
+      "rotation": [
+        0,
+        0.7071068286895689,
+        0,
+        0.7071067336835231
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 29091,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 29091,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 43119,
-      "type": "SCALAR"
+      "scale": [
+        0.3752742815749457,
+        0.37527423115352576,
+        0.3752742815749457
+      ],
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 349092,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 349092,
-      "byteOffset": 349092
-    },
-    {
-      "buffer": 0,
-      "byteLength": 232728,
-      "byteOffset": 698184
-    },
-    {
-      "buffer": 0,
-      "byteLength": 86238,
-      "byteOffset": 930912
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 1017152,
-      "uri": "bar_chair_round_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

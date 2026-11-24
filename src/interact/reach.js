@@ -11,7 +11,7 @@ import { isDescendant } from '../core/world.js';
 const _ray = new THREE.Raycaster(), _plane = new THREE.Plane(), _v = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 
 export class Reacher {
-  constructor(camera, world, manip, body) { Object.assign(this, { camera, world, manip, body }); this.rayTargets = null; this.maxReach = 0.85; }
+  constructor(camera, world, manip, body) { Object.assign(this, { camera, world, manip, body }); this.rayTargets = null; this.maxReach = 1.0 /* arm plus a lean; beyond that, step sideways or use the other hand */; this.onLimit = null; this._lim = -1e9; }
   pick(ndc, exclude) {
     if (!this.rayTargets) this.rayTargets = [...new Set([...this.world.aoiMeshes, ...this.world.supportMeshes])];
     _ray.setFromCamera(ndc, this.camera); _ray.far = 12;
@@ -59,7 +59,10 @@ export class Reacher {
     // arm's length from the shoulder (not while operating a drawer/door, which defines its own path)
     if (!(hand.hold && hand.hold.mode !== 'free')) {
       const sh = this.body.shoulder(hand.side), d = T.distanceTo(sh);
-      if (d > this.maxReach) T.sub(sh).multiplyScalar(this.maxReach / d).add(sh);
+      if (d > this.maxReach) {
+        T.sub(sh).multiplyScalar(this.maxReach / d).add(sh);
+        if (d > this.maxReach + 0.06 && performance.now() - this._lim > 6000) { this._lim = performance.now(); this.onLimit?.(hand); }
+      }
     }
     return T;
   }

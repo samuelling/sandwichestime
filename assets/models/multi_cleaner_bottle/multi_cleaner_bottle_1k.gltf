@@ -1,43 +1,282 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v3.3.32",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "blend_export",
-      "nodes": [
-        0,
-        1
-      ]
-    }
-  ],
-  "nodes": [
-    {
-      "mesh": 0,
-      "name": "multi_cleaner_bottle"
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 16236,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
     },
     {
-      "mesh": 1,
-      "name": "multi_cleaner_bottle_sticker"
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 4140,
+      "normalized": false,
+      "byteOffset": 32472,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3209,
+      "max": [
+        12685,
+        32767,
+        12685
+      ],
+      "min": [
+        -12685,
+        -32767,
+        -12685
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 3209,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 3209,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 794,
+      "max": [
+        17422,
+        32767,
+        19722
+      ],
+      "min": [
+        -17422,
+        -32767,
+        -19722
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 4
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 794,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 5
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 794,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 6
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 40752,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 7526,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 20376
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 40752,
+      "byteLength": 25672,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 7528,
+          "byteLength": 14476,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3209
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 66424,
+      "byteLength": 25672,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 22004,
+          "byteLength": 18006,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 3209
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 92096,
+      "byteLength": 12836,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 40012,
+          "byteLength": 9277,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 3209
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 104932,
+      "byteLength": 6352,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 49292,
+          "byteLength": 4459,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 794
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 111284,
+      "byteLength": 6352,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 53752,
+          "byteLength": 4579,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 794
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 117636,
+      "byteLength": 3176,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 58332,
+          "byteLength": 2497,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 794
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "multi_cleaner_bottle_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/multi_cleaner_bottle_nor_gl_1k.jpg"
+    },
+    {
+      "name": "multi_cleaner_bottle_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/multi_cleaner_bottle_diff_1k.jpg"
+    },
+    {
+      "name": "multi_cleaner_bottle_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/multi_cleaner_bottle_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "multi_cleaner_bottle.bin",
+      "byteLength": 60832
+    },
+    {
+      "byteLength": 120812,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "multi_cleaner_bottle",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -47,12 +286,13 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 2,
+            "NORMAL": 3,
+            "TEXCOORD_0": 4
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     },
@@ -61,177 +301,63 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 4,
-            "NORMAL": 5,
-            "TEXCOORD_0": 6
+            "POSITION": 5,
+            "NORMAL": 6,
+            "TEXCOORD_0": 7
           },
-          "indices": 7,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 1
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "multi_cleaner_bottle_nor_gl",
-      "uri": "textures/multi_cleaner_bottle_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "multi_cleaner_bottle_diff",
-      "uri": "textures/multi_cleaner_bottle_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "multi_cleaner_bottle_rough",
-      "uri": "textures/multi_cleaner_bottle_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 3209,
-      "max": [
-        0.04423614218831062,
-        0.22856293618679047,
-        0.04423609375953674
+      "name": "multi_cleaner_bottle",
+      "translation": [
+        4.842877388000488e-8,
+        0.11428146807599994,
+        0
       ],
-      "min": [
-        -0.04423604533076286,
-        -3.4790587077893065e-11,
-        -0.04423609375953674
+      "scale": [
+        0.11428146811079053,
+        0.11428146811079053,
+        0.11428146811079053
       ],
-      "type": "VEC3"
+      "mesh": 0
     },
     {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 3209,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 3209,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 16236,
-      "type": "SCALAR"
-    },
-    {
-      "bufferView": 4,
-      "componentType": 5126,
-      "count": 794,
-      "max": [
-        0.037626270204782486,
-        0.1631469428539276,
-        0.04488615319132805
+      "name": "multi_cleaner_bottle_sticker",
+      "translation": [
+        -0.0020177867263555527,
+        0.08858064375817776,
+        0.000010410323739051819
       ],
-      "min": [
-        -0.04166184365749359,
-        0.014014344662427902,
-        -0.044865332543849945
+      "scale": [
+        0.07456629909574986,
+        0.07456629909574986,
+        0.07456629909574986
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 5,
-      "componentType": 5126,
-      "count": 794,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 6,
-      "componentType": 5126,
-      "count": 794,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 7,
-      "componentType": 5123,
-      "count": 4140,
-      "type": "SCALAR"
+      "mesh": 1
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 38508,
-      "byteOffset": 0,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 38508,
-      "byteOffset": 38508,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 25672,
-      "byteOffset": 77016,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 32472,
-      "byteOffset": 102688,
-      "target": 34963
-    },
-    {
-      "buffer": 0,
-      "byteLength": 9528,
-      "byteOffset": 135160,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 9528,
-      "byteOffset": 144688,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 6352,
-      "byteOffset": 154216,
-      "target": 34962
-    },
-    {
-      "buffer": 0,
-      "byteLength": 8280,
-      "byteOffset": 160568,
-      "target": 34963
+      "name": "blend_export",
+      "nodes": [
+        0,
+        1
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 168848,
-      "uri": "multi_cleaner_bottle.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

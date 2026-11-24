@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v1.6.16",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 21036,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4019,
+      "max": [
+        32767,
+        28679,
+        32211
+      ],
+      "min": [
+        -32767,
+        -28679,
+        -32211
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4019,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 4019,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "food_apple_01"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 42072,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 7984,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 21036
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 42072,
+      "byteLength": 32152,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 7984,
+          "byteLength": 20340,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4019
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 74224,
+      "byteLength": 32152,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 28324,
+          "byteLength": 23084,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4019
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 106376,
+      "byteLength": 16076,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 51408,
+          "byteLength": 12202,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 4019
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "food_apple_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_apple_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "food_apple_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_apple_01_diff_1k.jpg"
+    },
+    {
+      "name": "food_apple_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_apple_01_rough_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "food_apple_01.bin",
+      "byteLength": 63612
+    },
+    {
+      "byteLength": 122452,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "food_apple_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,115 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_apple_01_nor_gl",
-      "uri": "textures/food_apple_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_apple_01_diff",
-      "uri": "textures/food_apple_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_apple_01_rough",
-      "uri": "textures/food_apple_01_rough_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 4019,
-      "max": [
-        0.04917982220649719,
-        0.08536732196807861,
-        0.05008470639586449
+      "name": "food_apple_01",
+      "translation": [
+        0.0003992319107055664,
+        0.04267234994858882,
+        0.002133851870894432
       ],
-      "min": [
-        -0.04838135838508606,
-        -0.000022622070900979452,
-        -0.04581700265407562
+      "scale": [
+        0.048780590295791626,
+        0.048780590295791626,
+        0.048780590295791626
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 4019,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 4019,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 21036,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 48228,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 48228,
-      "byteOffset": 48228
-    },
-    {
-      "buffer": 0,
-      "byteLength": 32152,
-      "byteOffset": 96456
-    },
-    {
-      "buffer": 0,
-      "byteLength": 42072,
-      "byteOffset": 128608
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 170680,
-      "uri": "food_apple_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

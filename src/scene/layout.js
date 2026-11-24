@@ -2,6 +2,7 @@
 // written to the log, so analysis never has to regenerate it.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { Entity } from '../core/world.js';
 import { rng } from '../util/util.js';
 import { K } from './kitchen.js';
@@ -11,7 +12,8 @@ import { makeBreadBag, makeJar, makeKnife, makePlate, makeTowel, makeBell, makeC
 // geometry always comes from assets/; in 'lite' detail the textures are redirected to assets/lite/
 const manager = new THREE.LoadingManager();
 manager.setURLModifier(url => (ASSET_BASE !== 'assets/' && /\.(jpe?g|png)$/i.test(url) ? url.replace('assets/models/', ASSET_BASE + 'models/') : url));
-const gltf = new GLTFLoader(manager);
+const gltf = new GLTFLoader(manager); gltf.setMeshoptDecoder(MeshoptDecoder);   // geometry is meshopt-compressed (tools/compress_models.sh)
+export const modelManager = manager;
 const cache = new Map();
 async function loadModel(manifest, id) {
   if (!cache.has(id)) cache.set(id, gltf.loadAsync('assets/' + manifest.models[id].file).then(g => g.scene));
@@ -49,6 +51,7 @@ function regions(kitchen) {
   const Y = K.counterY, cb = K.counterBack;
   const R = {
     counter: { x0: -1.08, x1: 0.70, z0: cb + 0.07, z1: -0.07, y: Y },
+    work: { x0: -0.72, x1: 0.68, z0: cb + 0.07, z1: -0.07, y: Y },      // task objects stay where the standing view (also a phone's) shows them
     counterBack: { x0: -1.1, x1: 0.7, z0: cb + 0.03, z1: cb + 0.3, y: Y },
     cooktop: { x0: K.cooktop.x0 + 0.12, x1: K.cooktop.x1 - 0.12, z0: -0.48, z1: -0.16, y: Y + 0.006 },
     sinkRight: { x0: K.sink.x1 + 0.08, x1: K.xMax - 0.06, z0: cb + 0.08, z1: -0.1, y: Y },
@@ -108,7 +111,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
     if (!world.entities.has(ent.id)) world.add(ent, scene); else scene.add(ent.root);
     ent.root.position.set(p.x, reg.y + ent.restOffset, p.z);
     ent.root.rotation.set(0, p.yaw, 0);
-    ent.restingOn = reg.parent === 'drawer' ? 'drawer' : regionName.replace(/\d$/, '');
+    ent.restingOn = reg.parent === 'drawer' ? 'drawer' : regionName === 'work' ? 'counter' : regionName.replace(/\d$/, '');
     if (reg.parent === 'drawer') kitchen.drawer.root.attach(ent.root);
     placements.push({ id: ent.id, kind: ent.kind, role: ent.role, region: regionName, pos: ent.root.getWorldPosition(new THREE.Vector3()).toArray().map(v => +v.toFixed(4)), yaw: +p.yaw.toFixed(4) });
   };
@@ -119,6 +122,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
     place(ent, region, p); return true;
   };
 
+  const decor = Promise.all(['wall_clock', 'potted_plant_01', 'bar_chair_round_01'].map(id => loadModel(manifest, id)));   // start these downloads now
   // ---- task objects ----
   const plate = makePlate(M), bag = makeBreadBag(M, world), pb = makeJar(M, world, 'pb'), jelly = makeJar(M, world, 'jelly');
   const knife = makeKnife(M), towel = makeTowel(M), bell = makeBell(M);
@@ -135,10 +139,10 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
     fixed(plate, 'counter', 0.0, -0.25);
   }
   const yaw0 = () => (r() - 0.5) * 0.6;
-  packed(bag, 'counter', { yaw: yaw0() + (r() < 0.5 ? 0 : Math.PI) });
-  packed(pb, 'counter');
-  if (cfg.layout !== 'stored') { packed(jelly, 'counter'); packed(knife, 'counter', { yaw: yaw0(), clearFront: true }); }
-  packed(towel, 'counter', { yaw: yaw0() });
+  packed(bag, 'work', { yaw: yaw0() + (r() < 0.5 ? 0 : Math.PI) });
+  packed(pb, 'work');
+  if (cfg.layout !== 'stored') { packed(jelly, 'work'); packed(knife, 'work', { yaw: yaw0(), clearFront: true }); }
+  packed(towel, 'work', { yaw: yaw0() });
 
   // drawer cutlery distractors (always)
   const cut = [['fork', 'fork'], ['spoon', 'spoon'], ['chef', 'chef_knife']];
@@ -150,6 +154,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
     // big things first (random positions, deterministic order by size then shuffle within ties)
     const order = r.shuffle(pool);
     const counts = {};
+    await Promise.all([...new Set(order.map(d => d.m))].map(id => loadModel(manifest, id)));   // fetch everything in parallel; placement below stays in seeded order
     for (const d of order) {
       let src = (await loadModel(manifest, d.m));
       if (d.node) src = src.getObjectByName(d.node);
@@ -171,6 +176,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
     }
   }
   // decor that is always present
+  await decor;
   const clock = (await loadModel(manifest, 'wall_clock')).clone(true);
   const clockEnt = new Entity('wall_clock', clock, { kind: 'wall_clock', role: 'distractor', grabbable: false, settle: 'none' });
   clock.position.set(0.08, 2.22, K.counterBack + 0.002); world.add(clockEnt, scene);

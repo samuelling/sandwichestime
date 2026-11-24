@@ -1,38 +1,189 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v1.6.16",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0
-      ]
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 24426,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4593,
+      "max": [
+        32459,
+        32655,
+        32767
+      ],
+      "min": [
+        -32459,
+        -32655,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4593,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 4593,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
     }
   ],
-  "nodes": [
+  "bufferViews": [
     {
-      "mesh": 0,
-      "name": "food_pomegranate_01"
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 48852,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 9341,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 24426
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 48852,
+      "byteLength": 36744,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 9344,
+          "byteLength": 22998,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4593
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 85596,
+      "byteLength": 36744,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 32344,
+          "byteLength": 25782,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4593
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 122340,
+      "byteLength": 18372,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 58128,
+          "byteLength": 13777,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 4593
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "food_pomegranate_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_pomegranate_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "food_pomegranate_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_pomegranate_01_diff_1k.jpg"
+    },
+    {
+      "name": "food_pomegranate_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/food_pomegranate_01_rough_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "food_pomegranate_01.bin",
+      "byteLength": 71908
+    },
+    {
+      "byteLength": 140712,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "food_pomegranate_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 1
-        },
         "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -42,115 +193,48 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_pomegranate_01_nor_gl",
-      "uri": "textures/food_pomegranate_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_pomegranate_01_diff",
-      "uri": "textures/food_pomegranate_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "food_pomegranate_01_rough",
-      "uri": "textures/food_pomegranate_01_rough_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 4593,
-      "max": [
-        0.0545337088406086,
-        0.11526758968830109,
-        0.05773773044347763
+      "name": "food_pomegranate_01",
+      "translation": [
+        -0.002601858228445053,
+        0.057789307087659836,
+        0.00006060861051082611
       ],
-      "min": [
-        -0.0597374252974987,
-        0.0003110244870185852,
-        -0.05761651322245598
+      "scale": [
+        0.057677121832966805,
+        0.057677121832966805,
+        0.057677121832966805
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 4593,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 4593,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 24426,
-      "type": "SCALAR"
+      "mesh": 0
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 55116,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 55116,
-      "byteOffset": 55116
-    },
-    {
-      "buffer": 0,
-      "byteLength": 36744,
-      "byteOffset": 110232
-    },
-    {
-      "buffer": 0,
-      "byteLength": 48852,
-      "byteOffset": 146976
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 195828,
-      "uri": "food_pomegranate_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }

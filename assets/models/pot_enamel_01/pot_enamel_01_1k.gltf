@@ -1,42 +1,281 @@
 {
   "asset": {
-    "generator": "Khronos glTF Blender I/O v3.2.40",
+    "generator": "glTF-Transform v4.5.1",
     "version": "2.0"
   },
-  "scene": 0,
-  "scenes": [
+  "accessors": [
     {
-      "name": "Scene",
-      "nodes": [
-        0,
-        1
-      ]
-    }
-  ],
-  "nodes": [
-    {
-      "mesh": 0,
-      "name": "pot_enamel_01_lid"
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 9984,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
     },
     {
-      "mesh": 1,
-      "name": "pot_enamel_01_base"
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 24264,
+      "normalized": false,
+      "byteOffset": 19968,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 1861,
+      "max": [
+        32767,
+        8977,
+        32767
+      ],
+      "min": [
+        -32767,
+        -8977,
+        -32767
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 1861,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 1861,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4450,
+      "max": [
+        32767,
+        16394,
+        22486
+      ],
+      "min": [
+        -32767,
+        -16394,
+        -22486
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 4
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 4450,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 5
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 4450,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 6
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 68496,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 13024,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 34248
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 68496,
+      "byteLength": 14888,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 13024,
+          "byteLength": 8585,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 1861
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 83384,
+      "byteLength": 14888,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 21612,
+          "byteLength": 9512,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 1861
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 98272,
+      "byteLength": 7444,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 31124,
+          "byteLength": 5746,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 1861
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 105716,
+      "byteLength": 35600,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 36872,
+          "byteLength": 21141,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4450
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 141316,
+      "byteLength": 35600,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 58016,
+          "byteLength": 24677,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 4450
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 176916,
+      "byteLength": 17800,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 82696,
+          "byteLength": 13266,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 4450
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "pot_enamel_01_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/pot_enamel_01_nor_gl_1k.jpg"
+    },
+    {
+      "name": "pot_enamel_01_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/pot_enamel_01_diff_1k.jpg"
+    },
+    {
+      "name": "pot_enamel_01_metal-pot_enamel_01_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/pot_enamel_01_arm_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "pot_enamel_01.bin",
+      "byteLength": 95964
+    },
+    {
+      "byteLength": 194716,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
     }
   ],
   "materials": [
     {
-      "doubleSided": true,
       "name": "pot_enamel_01",
-      "normalTexture": {
-        "index": 0
-      },
+      "doubleSided": true,
       "pbrMetallicRoughness": {
         "baseColorTexture": {
-          "index": 1
+          "index": 0
         },
         "metallicRoughnessTexture": {
           "index": 2
         }
+      },
+      "normalTexture": {
+        "index": 1
       }
     }
   ],
@@ -46,12 +285,13 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TEXCOORD_0": 2
+            "POSITION": 2,
+            "NORMAL": 3,
+            "TEXCOORD_0": 4
           },
-          "indices": 3,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 0
         }
       ]
     },
@@ -60,169 +300,63 @@
       "primitives": [
         {
           "attributes": {
-            "POSITION": 4,
-            "NORMAL": 5,
-            "TEXCOORD_0": 6
+            "POSITION": 5,
+            "NORMAL": 6,
+            "TEXCOORD_0": 7
           },
-          "indices": 7,
-          "material": 0
+          "mode": 4,
+          "material": 0,
+          "indices": 1
         }
       ]
     }
   ],
-  "textures": [
+  "nodes": [
     {
-      "sampler": 0,
-      "source": 0
-    },
-    {
-      "sampler": 0,
-      "source": 1
-    },
-    {
-      "sampler": 0,
-      "source": 2
-    }
-  ],
-  "images": [
-    {
-      "mimeType": "image/jpeg",
-      "name": "pot_enamel_01_nor_gl",
-      "uri": "textures/pot_enamel_01_nor_gl_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "pot_enamel_01_diff",
-      "uri": "textures/pot_enamel_01_diff_1k.jpg"
-    },
-    {
-      "mimeType": "image/jpeg",
-      "name": "pot_enamel_01_metal-pot_enamel_01_rough",
-      "uri": "textures/pot_enamel_01_arm_1k.jpg"
-    }
-  ],
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 1861,
-      "max": [
+      "name": "pot_enamel_01_lid",
+      "translation": [
+        0,
+        0.15368959307670593,
+        0
+      ],
+      "scale": [
         0.09023720771074295,
-        0.17840638756752014,
+        0.09023720771074295,
         0.09023720771074295
       ],
-      "min": [
-        -0.09023720771074295,
-        0.12897279858589172,
-        -0.09023720771074295
+      "mesh": 0
+    },
+    {
+      "name": "pot_enamel_01_base",
+      "translation": [
+        0,
+        0.06592090427875519,
+        0
       ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 1861,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 1861,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5123,
-      "count": 9984,
-      "type": "SCALAR"
-    },
-    {
-      "bufferView": 4,
-      "componentType": 5126,
-      "count": 4450,
-      "max": [
+      "scale": [
         0.13146506249904633,
-        0.13169820606708527,
-        0.09021023660898209
+        0.13146506249904633,
+        0.13146506249904633
       ],
-      "min": [
-        -0.13146506249904633,
-        0.00014360249042510986,
-        -0.09021023660898209
-      ],
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 5,
-      "componentType": 5126,
-      "count": 4450,
-      "type": "VEC3"
-    },
-    {
-      "bufferView": 6,
-      "componentType": 5126,
-      "count": 4450,
-      "type": "VEC2"
-    },
-    {
-      "bufferView": 7,
-      "componentType": 5123,
-      "count": 24264,
-      "type": "SCALAR"
+      "mesh": 1
     }
   ],
-  "bufferViews": [
+  "scenes": [
     {
-      "buffer": 0,
-      "byteLength": 22332,
-      "byteOffset": 0
-    },
-    {
-      "buffer": 0,
-      "byteLength": 22332,
-      "byteOffset": 22332
-    },
-    {
-      "buffer": 0,
-      "byteLength": 14888,
-      "byteOffset": 44664
-    },
-    {
-      "buffer": 0,
-      "byteLength": 19968,
-      "byteOffset": 59552
-    },
-    {
-      "buffer": 0,
-      "byteLength": 53400,
-      "byteOffset": 79520
-    },
-    {
-      "buffer": 0,
-      "byteLength": 53400,
-      "byteOffset": 132920
-    },
-    {
-      "buffer": 0,
-      "byteLength": 35600,
-      "byteOffset": 186320
-    },
-    {
-      "buffer": 0,
-      "byteLength": 48528,
-      "byteOffset": 221920
+      "name": "Scene",
+      "nodes": [
+        0,
+        1
+      ]
     }
   ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987
-    }
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ],
-  "buffers": [
-    {
-      "byteLength": 270448,
-      "uri": "pot_enamel_01.bin"
-    }
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
   ]
 }
