@@ -45,3 +45,23 @@ button.ghost { background:transparent; color:var(--accent); border:1px solid var
 #campip .hint { opacity:.5; }
 #campip.min canvas { display:none; }
 #campip.lost { outline:2px solid #d0503c; }
+
+/* touch controls */
+#view { height:100dvh; }
+#touchbar { position:fixed; left:0; right:0; bottom:0; z-index:6; display:flex; gap:6px; justify-content:center; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); pointer-events:none; }
+#touchbar button { pointer-events:auto; margin:0; flex:1 1 0; max-width:130px; min-height:46px; padding:8px 4px; font-size:14px; background:rgba(28,23,18,.72); color:#f3eadb; border:1px solid rgba(255,255,255,.18); border-radius:12px; backdrop-filter:blur(8px); -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+#touchbar button[data-act=left], #touchbar button[data-act=right] { flex:0 0 46px; }
+#touchbar button:disabled { opacity:.35; }
+#touchbar button.on { background:var(--accent); border-color:var(--accent); }
+body:has(#touchbar) #status { bottom:calc(70px + env(safe-area-inset-bottom)); }
+body:has(#touchbar) #toast { bottom:calc(100px + env(safe-area-inset-bottom)); }
+@media (max-width: 640px) {
+  .panel { padding:18px 16px; }
+  h1 { font-size:32px; }
+  .grid { grid-template-columns:1fr; }
+  label.wide { grid-column:auto; }
+  #instruction { font-size:13px; max-width:92vw; top:calc(8px + env(safe-area-inset-top)); }
+  #report .metrics { grid-template-columns:repeat(2, 1fr); }
+}
+@media (max-height: 520px) { #instruction { font-size:12px; padding:5px 12px; top:calc(6px + env(safe-area-inset-top)); } }
+#instruction { transition:opacity 1s; } #instruction.dim { opacity:.28; }

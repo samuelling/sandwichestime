@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>sandwichestime — a virtual sandwich task</title>
 <link rel="stylesheet" href="src/ui/style.css">
 <script type="importmap">
@@ -43,6 +43,7 @@
       <label>Hands
         <select name="input">
           <option value="mouse">mouse + keyboard (pilot / debug)</option>
+          <option value="touch">touch screen (phone / tablet)</option>
           <option value="webcam">webcam hand tracking (both hands, MediaPipe)</option>
           <option value="xr">headset hand tracking (WebXR)</option>
         </select></label>
@@ -52,6 +53,11 @@
           <option value="webcam">webcam iris tracking (calibrated)</option>
           <option value="socket">external eye tracker (WebSocket)</option>
           <option value="mouse">mouse as gaze (debug only)</option>
+        </select></label>
+      <label>Detail
+        <select name="detail">
+          <option value="full">full</option>
+          <option value="lite">lite (phones: smaller textures)</option>
         </select></label>
       <label>Hand appearance
         <select name="handtone">
@@ -87,6 +93,7 @@
       <tr><td>Right-drag</td><td>look around</td></tr>
       <tr><td>Bell</td><td>ring it (grasp it) when the sandwich is done</td></tr>
     </table>
+    <p><b>Touch screen.</b> Tap something to grab it; tap a spot to carry what you hold there and put it down. Drag to move the hand. Grab a lid, then drag in a circle (counter-clockwise) to unscrew it. The buttons at the bottom press down (to dip, spread or cut), flip a slice, let go, switch hands and step sideways. Landscape gives the widest view.</p>
     <p><b>Webcam.</b> Hold your hands up in front of the camera, palms toward it. Each virtual hand goes to wherever your real hand points on the screen: up is farther away on the counter (or up onto the shelves).</p>
     <table>
       <tr><td>Pinch thumb + index</td><td>grasp; open the fingers to let go</td></tr>

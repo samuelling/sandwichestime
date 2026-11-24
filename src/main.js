@@ -6,12 +6,13 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { World } from './core/world.js';
-import { buildMaterials, setMaxAnisotropy } from './scene/materials.js';
+import { buildMaterials, setMaxAnisotropy, setAssetDetail } from './scene/materials.js';
 import { buildKitchen } from './scene/kitchen.js';
 import { buildLayout } from './scene/layout.js';
 import { Hand, HandRig } from './interact/hand.js';
 import { Manipulator } from './interact/manip.js';
 import { MouseInput, Body } from './interact/mouse.js';
+import { TouchInput } from './interact/touch.js';
 import { Vision } from './interact/vision.js';
 import { WebcamHands } from './interact/webcam.js';
 import { Reacher } from './interact/reach.js';
@@ -29,6 +30,9 @@ import { toast } from './util/util.js';
 const $ = s => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const form = $('#setup');
+// Phones and tablets: touch controls, the low-memory asset set and no post-processing by default (URL parameters still override).
+const coarse = matchMedia('(pointer: coarse)').matches, small = Math.min(screen.width, screen.height) < 700;
+if (coarse) { form.elements.input.value = 'touch'; form.elements.detail.value = 'lite'; form.elements.quality.checked = false; form.elements.saliency.checked = false; if (small) form.elements.distractors.value = 'sparse'; }
 for (const [k, v] of params) { const el = form.elements[k]; if (el) { if (el.type === 'checkbox') el.checked = v !== '0'; else { if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; } } }
 form.addEventListener('submit', e => { e.preventDefault(); start(readConfig()).catch(err => { console.error(err); alert('Could not start: ' + err.message); }); });
 if (params.get('auto') === '1') queueMicrotask(() => start(readConfig()).catch(e => { console.error(e); window.__error = String(e.stack || e); }));
@@ -51,6 +55,9 @@ async function start(cfg) {
   setMaxAnisotropy(renderer.capabilities.getMaxAnisotropy());
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0xd9d2c6);
   const camera = new THREE.PerspectiveCamera(56, innerWidth / innerHeight, 0.03, 30);
+  // Wide screens: 56° vertical. Narrow / portrait screens: widen so about 66° of the counter is still visible left to right.
+  const fitCamera = () => { const a = innerWidth / innerHeight; camera.aspect = a; camera.fov = a >= 1.3 ? 56 : Math.min(98, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(33)) / a))); camera.updateProjectionMatrix(); };
+  fitCamera(); setAssetDetail(cfg.detail);
   const world = new World(scene);
   window.__sandwich = { world, scene, camera, renderer, cfg };
 
@@ -76,7 +83,7 @@ async function start(cfg) {
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.2' };
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'full', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.3' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;
@@ -85,6 +92,7 @@ async function start(cfg) {
   // ---- inputs ----
   let input = null, vision = null, xrHands = null, autopilot = null, webcamHands = null;
   if (cfg.input === 'mouse') input = new MouseInput(canvas, camera, world, hands, manip, body);
+  if (cfg.input === 'touch') { input = new TouchInput(canvas, camera, world, hands, manip, body); toast('Tap to grab or put down · drag to move', 5000); setTimeout(() => $('#instruction').classList.add('dim'), 9000); }
   if (cfg.input === 'autopilot') { autopilot = new Autopilot(world, L.task, hands, manip, body, camera, cfg.seed); autopilot.speed = cfg.speed; }
   if (cfg.input === 'webcam' || cfg.gaze === 'webcam') {
     if (params.get('fakecam') === '1') { vision = Vision.fake(); window.__fakeHands = r => { vision.handResult = r; vision.frameT = performance.now() / 1000; }; }
@@ -132,7 +140,7 @@ async function start(cfg) {
     const ao = new GTAOPass(scene, camera, innerWidth, innerHeight); ao.blendIntensity = 0.85; ao.updateGtaoMaterial({ radius: 0.12, distanceFallOff: 1, thickness: 1 }); composer.addPass(ao);
     composer.addPass(new OutputPass());
   }
-  addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer?.setSize(innerWidth, innerHeight); });
+  addEventListener('resize', () => { fitCamera(); renderer.setSize(innerWidth, innerHeight); composer?.setSize(innerWidth, innerHeight); });
 
   // ---- HUD ----
   $('#hud').hidden = false;
@@ -158,6 +166,7 @@ async function start(cfg) {
       onUpload: () => logger.upload(cfg.endpoint),
       onAgain: () => { const u = new URL(location.href); for (const [k, v] of Object.entries({ ...cfg, session: cfg.session + 1, seed: cfg.seed + 1 })) u.searchParams.set(k, v); u.searchParams.delete('auto'); location.href = u.toString(); },
     }), 600);
+    document.getElementById('touchbar')?.remove(); document.getElementById('campip')?.remove();
     window.__done = true;
   }
 
@@ -182,7 +191,7 @@ async function start(cfg) {
     gaze.camera = cam;
     gaze.update(tt, renderer.xr.isPresenting);
     if (logger.recording) {
-      if (tt - lastFrame >= 1 / 90 - 1e-6) { lastFrame = tt; logger.frame(tt, { camera: cam, body, gaze, hands, joints: cfg.input !== 'mouse' }); logger.objectPoses(tt, taskEntities); }
+      if (tt - lastFrame >= 1 / 90 - 1e-6) { lastFrame = tt; logger.frame(tt, { camera: cam, body, gaze, hands, joints: cfg.input !== 'mouse' && cfg.input !== 'touch' }); logger.objectPoses(tt, taskEntities); }
       if (aoiBuf && tt - lastAOI >= 0.2) { lastAOI = tt; logger.aoi(tt, aoiBuf.capture()); }
       if (tt - lastBackup > 15) { lastBackup = tt; logger.backup(); }
     }

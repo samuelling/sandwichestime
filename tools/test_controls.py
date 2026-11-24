@@ -8,10 +8,13 @@
              ffmpeg -i hands.mp4 -pix_fmt yuv420p -s 640x360 hands.y4m
 
   mouse      real mouse events: click the bread clip (bag opens), carry it, click to set it down.
+  touch      an emulated phone (touch events): bag, slice to plate, unscrew a lid by circling,
+             knife, dip with the Press button, spread, let go.
 
     python3 -m http.server 8811 &
     python3 tools/test_controls.py synthetic
     python3 tools/test_controls.py mouse
+    python3 tools/test_controls.py touch --shot phone.png
     python3 tools/test_controls.py camera --video hands.y4m --shot out.png
 """
 import argparse, asyncio, json, os, sys
@@ -71,12 +74,87 @@ async def mouse(a):
     if not all(checks.values()): print(s0, s1, s2)
     print('PASS' if all(checks.values()) else 'FAIL'); return all(checks.values())
 
+async def touch(a):
+    import math
+    async with async_playwright() as p:
+        b = await p.chromium.launch(executable_path=a.chrome, args=GL)
+        dev = dict(p.devices['iPhone 14 landscape']); dev.pop('default_browser_type', None)
+        ctx = await b.new_context(**dev); pg = await ctx.new_page(); cdp = await ctx.new_cdp_session(pg)
+        await pg.goto(f"{a.base}?auto=1&gaze=none&seed={a.seed}&pr=0.75&distractors=sparse&fast=5")     # no input= : the page must pick touch itself
+        await pg.wait_for_function('window.__sandwich && window.__sandwich.logger && window.__sandwich.logger.recording', timeout=180000)
+        ev = lambda js: pg.evaluate(f"(() => {{ const S = window.__sandwich, T = S.L.task, V3 = S.camera.position.constructor, pos = e => e.root.getWorldPosition(new V3()), h = S.hands[1]; {js} }})()")
+        px = lambda expr: ev(f"const v = ({expr}).clone().project(S.camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight];")
+        async def sim(sec):
+            t0 = await ev("return S.world.t;")
+            await pg.wait_for_function(f"window.__sandwich.world.t > {t0 + sec}", timeout=120000)
+        async def tap(xy): await pg.touchscreen.tap(xy[0], xy[1]); await sim(1.4)
+        async def drag(pts, step=0.12):
+            mk = lambda x, y: [{'x': x, 'y': y, 'id': 1}]
+            await cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': mk(*pts[0])})
+            for a0, a1 in zip(pts, pts[1:]):
+                for k in range(1, 5):
+                    await cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': mk(a0[0] + (a1[0] - a0[0]) * k / 4, a0[1] + (a1[1] - a0[1]) * k / 4)}); await sim(step / 4)
+            await cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []}); await sim(0.5)
+        btn = lambda act: pg.dispatch_event(f'#touchbar button[data-act={act}]', 'pointerdown')
+        class Out(dict):
+            def __setitem__(self, k, v): print('  ok ' if v else '  XX ', k, flush=True); super().__setitem__(k, v)
+        types = lambda: ev("return S.logger.events.map(e => e.type);")
+        out = Out()
+        out['phone picks touch controls and the lite assets'] = await ev("return S.cfg.input === 'touch' && S.logger.meta.detail === 'lite' && !!document.getElementById('touchbar');")
+        await tap(await px("pos(T.bag.clip)"))
+        out['tap grabs the clip, bag opens'] = await ev("return h.holding?.id === 'bread_clip' && T.bag.state.open;")
+        await tap(await px("new V3(0.42, 0.91, -0.08)"))
+        out['tap elsewhere puts it down'] = await ev("return !h.holding;")
+        await tap(await px("pos(T.bag.state.slices.reduce((a, b) => (b.state.index > a.state.index ? b : a))).add(new V3(0, 0.068, 0))"))
+        out['tap on the open end takes a slice'] = await ev("return h.holding?.kind === 'slice';")
+        await tap(await px("pos(T.plate).add(new V3(0, 0.01, 0))")); await sim(0.6)
+        out['tap on the plate puts the slice there'] = await ev("return !h.holding && S.monitor.done.slice_a !== undefined;")
+        c = await px("pos(T.pb).add(new V3(0, T.pb.geom.rimY + 0.005, 0))")
+        await tap(c)
+        out['tap on the lid grabs it for twisting'] = await ev("return h.hold?.mode === 'twist';")
+        ring = [(c[0] + 60 * math.cos(t), c[1] - 60 * math.sin(t)) for t in [i * math.pi / 8 for i in range(0, 22)]]     # counter-clockwise on screen
+        await drag(ring, 0.08)
+        out['circling counter-clockwise unscrews it'] = 'lid_off' in await types()
+        await tap(await px("pos(T.pb).add(new V3(-0.15, -0.0, 0.1))")); await sim(0.5)
+        out['lid put down, jar open'] = await ev("return !h.holding && T.pb.state.open;")
+        # tap a part of the knife that is actually visible (another object may stand in front of some of it)
+        kp = await ev('''const k = T.knife, pts = [k.geom.grip, ...k.geom.bladeSamples].map(p => k.root.localToWorld(p.clone()));
+          for (const w of pts) { const n = w.clone().project(S.camera); S.world.raycaster.setFromCamera({ x: n.x, y: n.y }, S.camera); S.world.raycaster.far = 10;
+            const hit = S.world.raycaster.intersectObjects(S.world.aoiMeshes, false).find(i => i.object.visible);
+            if (hit && S.world.entityOf(hit.object) === k) return [(n.x + 1) / 2 * innerWidth, (1 - n.y) / 2 * innerHeight]; }
+          return null;''')
+        out['some part of the knife is visible'] = kp is not None
+        await tap(kp or await px("T.knife.root.localToWorld(T.knife.geom.grip.clone())"))
+        out['tap grabs the knife'] = await ev("return h.holding?.id === 'knife';")
+        if not out['tap grabs the knife']: print(await ev("return JSON.stringify({ holding: h.holding?.id, hint: h.pickHint?.id, grip: h.grip.toArray(), knife: pos(T.knife).toArray(), body: S.body.x, last: S.logger.events.slice(-4).map(e => [e.type, e.obj || e.near || '', e.on || '']) });"))
+        # where the finger must be so that the blade (not the hand) is over a target: blade offset from the grip, measured live
+        aim = lambda target: px(f"(() => {{ const k = T.knife, b = k.root.localToWorld(k.geom.bladeSamples[3].clone()).sub(h.grip); const t = {target}; return new V3(t.x - b.x, 0.91, t.z - b.z); }})()")
+        start = await px("h.grip.clone().setY(0.91)"); j = await aim("pos(T.pb)")
+        await drag([(start[0], start[1] + 44), (j[0], j[1] + 44)], 0.5); await sim(0.6)
+        await btn('press'); await sim(1.3)
+        out['Press lowers the knife into the jar and loads it'] = await ev("return T.knife.state.substance === 'pb' && T.knife.state.load > 0.5;")
+        await btn('press'); await sim(0.5)
+        sl = "pos([...S.world.entities.values()].find(e => e.kind === 'slice' && e.restingOn === 'plate'))"
+        s0 = await aim(sl); await drag([(j[0], j[1] + 44), (s0[0], s0[1] + 44)], 0.5); await sim(0.5)
+        await btn('press'); await sim(0.5)
+        pts = [(s0[0] + dx, s0[1] + 44 + dy) for dx, dy in [(0, 0), (-22, -14), (22, -8), (-22, 0), (22, 8), (-22, 16), (22, 20), (0, 0)]]
+        await drag(pts, 0.35)
+        cov = await ev("const s = [...S.world.entities.values()].find(e => e.kind === 'slice' && e.restingOn === 'plate'); return Math.max(...Object.values(s.layers).map(L => L.measure()));")
+        out[f'dragging with Press on spreads peanut butter (coverage {cov:.2f})'] = cov > 0.15
+        await btn('press'); await sim(0.4); await btn('drop'); await sim(1.0)
+        out['Let go drops the knife'] = await ev("return !h.holding;")
+        errs = await pg.evaluate('window.__errors || null'); out['no errors'] = not errs
+        if a.shot: await pg.screenshot(path=a.shot, timeout=120000)
+        await b.close()
+    if errs: print(errs)
+    print('PASS' if all(out.values()) else 'FAIL'); return all(out.values())
+
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'camera', 'mouse'])
+    ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'camera', 'mouse', 'touch'])
     ap.add_argument('--base', default='http://localhost:8811/index.html'); ap.add_argument('--chrome', default=None); ap.add_argument('--seed', type=int, default=1)
     ap.add_argument('--video'); ap.add_argument('--shot'); ap.add_argument('--wait', type=float, default=6); ap.add_argument('--tone', default='neutral')
     a = ap.parse_args()
-    sys.exit(0 if asyncio.run({'synthetic': synthetic, 'camera': camera, 'mouse': mouse}[a.which](a)) else 1)
+    sys.exit(0 if asyncio.run({'synthetic': synthetic, 'camera': camera, 'mouse': mouse, 'touch': touch}[a.which](a)) else 1)
 
 if __name__ == '__main__':
     main()

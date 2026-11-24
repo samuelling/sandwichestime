@@ -3,6 +3,9 @@
 import * as THREE from 'three';
 
 const loader = new THREE.TextureLoader();
+// 'lite' serves reduced-resolution copies of the scanned textures (assets/lite/, see tools/make_lite.py) for phones
+export let ASSET_BASE = 'assets/';
+export function setAssetDetail(detail) { ASSET_BASE = detail === 'lite' ? 'assets/lite/' : 'assets/'; }
 let maxAniso = 8;
 export function setMaxAnisotropy(a) { maxAniso = a; }
 
@@ -18,7 +21,7 @@ function tex(url, { srgb = false, repeat = [1, 1] } = {}) {
 // Scanned material from assets/manifest.json texture entries.
 export function scanned(manifest, id, repeat = [1, 1], extra = {}) {
   const m = manifest.textures[id];
-  const base = 'assets/';
+  const base = ASSET_BASE;
   return new THREE.MeshStandardMaterial({
     map: tex(base + m.diff, { srgb: true, repeat }),
     normalMap: tex(base + m.nor_gl, { repeat }),
@@ -223,7 +226,8 @@ export function buildMaterials(manifest) {
   M.marble.map.repeat.set(1, 1);
   M.tiles = new THREE.MeshPhysicalMaterial({ ...subwayTiles(), roughness: 1, clearcoat: 0.35, clearcoatRoughness: 0.1 });
   M.parquet = scanned(manifest, 'herringbone_parquet', [2.5, 2.5]);
-  M.plaster = scanned(manifest, 'white_plaster_02', [3, 1.5], { color: 0xf1ece4, shadowSide: THREE.DoubleSide });
+  M.plaster = scanned(manifest, 'white_plaster_02', [3, 1.5], { color: 0xffffff, shadowSide: THREE.DoubleSide, normalScale: new THREE.Vector2(0.25, 0.25) });   // gentle relief: grazing spot light otherwise makes it blotchy
+  M.plaster.map = null; M.plaster.color.set(0xf5f0e7);   // painted wall: keep the plaster's relief and roughness, drop its stained albedo
   M.oak = scanned(manifest, 'white_oak_veneer', [1, 1]);
   M.oakShelf = scanned(manifest, 'white_oak_veneer', [2, 0.25]);
   M.linen = scanned(manifest, 'rough_linen', [2, 2]);

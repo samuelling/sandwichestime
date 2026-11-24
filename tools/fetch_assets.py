@@ -33,8 +33,6 @@ MODELS = {
     "bar_chair_round_01": "1k",
 }
 TEXTURES = {  # id -> (res, maps)
-    "marble_01": ("2k", ["diff", "nor_gl", "rough"]),
-    "long_white_tiles": ("2k", ["diff", "nor_gl", "rough"]),
     "herringbone_parquet": ("2k", ["diff", "nor_gl", "rough"]),
     "white_plaster_02": ("1k", ["diff", "nor_gl", "rough"]),
     "white_oak_veneer": ("1k", ["diff", "nor_gl", "rough"]),

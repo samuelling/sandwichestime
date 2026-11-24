@@ -34,7 +34,7 @@ export class GraspAids {
         r = Math.min(0.17, Math.max(0.02, Math.max(_s.x, _s.z) * 0.5 + 0.012)); x = _v.x; z = _v.z;
         if (hov) y = _box.min.y + Math.min(0.6 * _s.y, 0.015);   // just above the base, so the ring hugs flared things like the plate
       }
-      if (y === null) { const s = this.world.supportBelow(_v.set(x, h.grip.y + 0.05, z), held, 2.5); if (!s) { ring.visible = false; return; } y = s.y; if (!subject) r += 0.22 * Math.max(0, h.grip.y - y - 0.02); }
+      if (y === null) { const s = this.world.supportBelow(_v.set(x, h.grip.y + 0.05, z), held, 2.5); if (!s || h.grip.y - s.y > 0.45) { ring.visible = false; return; } /* nothing useful to mark far above the floor */ y = s.y; if (!subject) r += 0.22 * Math.max(0, h.grip.y - y - 0.02); }
       ring.position.set(x, y + 0.0025, z); ring.scale.setScalar(r);
       ring.material.color.setHex(hov ? COLORS.target : COLORS.idle); ring.material.opacity = hov ? 0.75 : held ? 0.5 : 0.4;
       ring.visible = true;

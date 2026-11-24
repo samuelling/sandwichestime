@@ -280,16 +280,6 @@
   }
  },
  "textures": {
-  "marble_01": {
-   "diff": "textures/marble_01/marble_01_diff_2k.jpg",
-   "nor_gl": "textures/marble_01/marble_01_nor_gl_2k.jpg",
-   "rough": "textures/marble_01/marble_01_rough_2k.jpg"
-  },
-  "long_white_tiles": {
-   "diff": "textures/long_white_tiles/long_white_tiles_diff_2k.jpg",
-   "nor_gl": "textures/long_white_tiles/long_white_tiles_nor_gl_2k.jpg",
-   "rough": "textures/long_white_tiles/long_white_tiles_rough_2k.jpg"
-  },
   "herringbone_parquet": {
    "diff": "textures/herringbone_parquet/herringbone_parquet_diff_2k.jpg",
    "nor_gl": "textures/herringbone_parquet/herringbone_parquet_nor_gl_2k.jpg",

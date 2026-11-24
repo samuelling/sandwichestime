@@ -302,7 +302,7 @@ export function buildKitchen(world, M) {
     can.position.set(x, K.ceiling - 0.004, -0.05); can.userData.noAOI = true; room.add(can);
     const trim = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.006, 8, 32), M.windowFrame); trim.rotation.x = Math.PI / 2; trim.position.copy(can.position); trim.userData.noAOI = true; room.add(trim);
   }
-  const fill = new THREE.HemisphereLight(0xf3efe8, 0x8a7a66, 0.22); lights.add(fill);
+  const fill = new THREE.HemisphereLight(0xfbf7f0, 0x9a8a76, 0.55); lights.add(fill);   // bounce light: keeps the upper walls from going muddy
   const underShelf = new THREE.PointLight(0xffd9a8, 0.9, 1.6, 2); underShelf.position.set(0.08, K.shelves[0] - 0.06, K.counterBack + 0.18); lights.add(underShelf);
 
   return { room, lights: { sun, spots, fill }, drawer: drawerEntity, cupboard: cupboardEntity, fridge: fridgeEntity, shelfMeshes };

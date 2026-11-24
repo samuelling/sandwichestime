@@ -78,7 +78,7 @@
   state.L.on = false; await sleep(1100);
   check('long dropout releases', !Lh.holding && !Lh.tracked);
   state.L.pinch = 0; state.L.on = true; await sleep(400);
-  check('hand re-acquired on the same side', Lh.tracked && Lh.grip.x < R.grip.x);
+  check('hand re-acquired as the same hand', Lh.tracked && R.tracked && Math.abs(S.webcamHands.st[0].ndc.x - Math.max(-1, Math.min(1, state.L.aim.clone().project(cam).x))) < 0.06, S.webcamHands.st[0].ndc.x.toFixed(2));
 
   // 4) unscrew the peanut butter lid by rotating the hand in the image plane (two strokes)
   const lidTop = pos(T.pb).add(new V3(0, T.pb.geom.rimY + 0.005, 0));

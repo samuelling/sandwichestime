@@ -5,9 +5,13 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Entity } from '../core/world.js';
 import { rng } from '../util/util.js';
 import { K } from './kitchen.js';
+import { ASSET_BASE } from './materials.js';
 import { makeBreadBag, makeJar, makeKnife, makePlate, makeTowel, makeBell, makeCutlery } from './props.js';
 
-const gltf = new GLTFLoader();
+// geometry always comes from assets/; in 'lite' detail the textures are redirected to assets/lite/
+const manager = new THREE.LoadingManager();
+manager.setURLModifier(url => (ASSET_BASE !== 'assets/' && /\.(jpe?g|png)$/i.test(url) ? url.replace('assets/models/', ASSET_BASE + 'models/') : url));
+const gltf = new GLTFLoader(manager);
 const cache = new Map();
 async function loadModel(manifest, id) {
   if (!cache.has(id)) cache.set(id, gltf.loadAsync('assets/' + manifest.models[id].file).then(g => g.scene));
@@ -63,7 +67,7 @@ function footprintCircles(fp, x, z, yaw) {
   return fp.map(([dx, dz, r]) => [x + c * dx + s * dz, z - s * dx + c * dz, r]);
 }
 
-function pack(r, region, fp, taken, { tries = 300, yaw = null, margin = 0.012 } = {}) {
+function pack(r, region, fp, taken, { tries = 300, yaw = null, margin = 0.012, clearFront = false } = {}) {
   let best = null;
   for (let k = 0; k < tries; k++) {
     const ya = yaw ?? r() * Math.PI * 2;
@@ -73,9 +77,11 @@ function pack(r, region, fp, taken, { tries = 300, yaw = null, margin = 0.012 } 
     const inside = circ.every(([cx, cz, cr]) => cx - cr * 0.7 > region.x0 && cx + cr * 0.7 < region.x1 && cz - cr * 0.7 > region.z0 && cz + cr * 0.7 < region.z1);
     if (!inside) continue;
     const ok = circ.every(([cx, cz, cr]) => taken.every(([tx, tz, tr]) => Math.hypot(cx - tx, cz - tz) > cr + tr + margin));
+    // flat things (the knife) must not sit directly behind something already placed, where the viewer cannot see them
+    if (ok && clearFront && taken.some(([tx, tz, tr]) => tz > z && tz - z < 0.32 && Math.abs(tx - x) < tr + 0.07)) continue;
     if (ok) { best = { x, z, yaw: ya, circ }; break; }
   }
-  if (best) taken.push(...best.circ);
+  if (best) { taken.push(...best.circ); if (clearFront) taken.push([best.x, best.z + 0.1, 0.06], [best.x, best.z + 0.2, 0.06]); }   // and nothing gets placed in front of it later
   return best;
 }
 
@@ -131,7 +137,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
   const yaw0 = () => (r() - 0.5) * 0.6;
   packed(bag, 'counter', { yaw: yaw0() + (r() < 0.5 ? 0 : Math.PI) });
   packed(pb, 'counter');
-  if (cfg.layout !== 'stored') { packed(jelly, 'counter'); packed(knife, 'counter', { yaw: yaw0() }); }
+  if (cfg.layout !== 'stored') { packed(jelly, 'counter'); packed(knife, 'counter', { yaw: yaw0(), clearFront: true }); }
   packed(towel, 'counter', { yaw: yaw0() });
 
   // drawer cutlery distractors (always)

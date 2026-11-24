@@ -179,12 +179,26 @@ Details that matter in practice:
 * **Dropouts** shorter than 0.6 s freeze the hand and keep its grasp; longer
   ones release.
 * **Occlusion**: a hand can only go to what the participant can see. Something
-  hidden behind a taller object has to be approached from a visible part.
+  hidden behind a taller object has to be approached from a visible part. The
+  layout generator keeps the knife out of such blind spots.
 * The first slice out of the bag is the heel, as in a real loaf.
 
 `tools/test_controls.py synthetic` drives this whole path with generated
 landmarks and checks grasping, carrying, pressing, flipping, dropouts,
 unscrewing and stepping.
+
+## Touch control
+
+The mouse model re-cut for one finger. A tap sends the active hand to that spot
+and, once it arrives, grabs what is there (or puts down what it holds). A drag
+moves the hand, which rides a little above the finger so the finger does not
+cover it. With a lid grabbed, dragging in a circle around it turns it. Buttons
+cover what a finger cannot express: Press (lower the held object to dip, spread
+or cut), Flip, Let go, switch hands, and step sideways.
+
+Narrow screens widen the vertical field of view so that about 66° of the
+counter stays visible left to right; the actual value is logged in
+`meta.fovY`.
 
 ## Grasp aids
 
@@ -195,7 +209,7 @@ task did not have, so they are optional and recorded in `meta.aids`. Turn them
 off for sessions where gaze is the measure of interest, or treat them as a
 factor.
 
-## Known limitations (v0.2)
+## Known limitations (v0.3)
 
 * Physics is light. Objects settle onto the highest support under their
   footprint, but nothing collides while it is held, and an object set down on
@@ -215,8 +229,12 @@ factor.
 * The planner minimises summed effort, not makespan.
 * Cutting is detected only as a stroke across a stacked sandwich; it is not
   rendered as a split.
-* Layouts changed between v0.1 and v0.2 (more props), so a seed gives a
-  different arrangement than before. Each log records its own layout.
+* Touch control has been tested with emulated touch events in a desktop
+  browser and loads in Safari's engine with an iPhone profile, not yet on a
+  physical phone. Memory on older phones is the open question.
+* Layouts changed in v0.2 (more props) and v0.3 (the knife is never placed
+  hidden behind another object), so a seed gives a different arrangement than
+  in earlier versions. Each log records its own layout.
 
 ## References
 
