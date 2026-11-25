@@ -133,7 +133,9 @@ export class WebcamHands {
   assign(dets) {
     const slots = [null, null], S = this.st;
     const known = i => S[i].lost < 1.0;
-    const d = (det, i) => Math.hypot(det.u - S[i].u, det.v - S[i].v);
+    // continuity from each hand's last *raw* position (the smoothed one lags a quick movement, and a hand moving fast
+    // could look closer to where the other hand's smoothed position still is), nudged by the tracker's own label
+    const d = (det, i) => Math.hypot(det.u - S[i].ru, det.v - S[i].rv) + ((det.label === 'Left') !== (i === 0) ? 0.08 : 0);
     if (dets.length >= 2) {
       const [a, b] = dets;
       let swap;
@@ -143,7 +145,7 @@ export class WebcamHands {
       slots[swap ? 1 : 0] = a; slots[swap ? 0 : 1] = b;
     } else if (dets.length === 1) {
       const a = dets[0]; let i = a.label === 'Left' ? 0 : 1;
-      if (known(0) !== known(1)) { const j = known(0) ? 0 : 1; if (d(a, j) < 0.25) i = j; }
+      if (known(0) !== known(1)) { const j = known(0) ? 0 : 1; if (d(a, j) < 0.25 + 0.08) i = j; }
       else if (known(0) && known(1)) i = d(a, 0) < d(a, 1) ? 0 : 1;
       slots[i] = a;
     }

@@ -31,6 +31,7 @@ export class Logger {
     camera.getWorldPosition(_p); camera.getWorldQuaternion(_q);
     F.head.push(r4(_p.x), r4(_p.y), r4(_p.z), r4(_q.x), r4(_q.y), r4(_q.z), r4(_q.w));
     F.body.push(r4(body?.x ?? 0));
+    if (body?.head) { const H = body.head; (F.headtrack ??= []).push(r4(H.yaw), r4(H.pitch), r4(H.dx), r4(H.dy), r4(H.dz)); }      /* head-tracking view offsets: yaw, pitch (rad), dx, dy, dz (m) */
     const g = F.gaze, s = gaze?.sample;
     if (s?.valid) {
       g.valid.push(1); g.screen.push(s.screen ? r4(s.screen[0]) : null, s.screen ? r4(s.screen[1]) : null);

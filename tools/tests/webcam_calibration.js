@@ -4,7 +4,7 @@
 //        'onehand' (only the right hand ever shows up), 'skip' (Skip calibration -> standard settings).
 (async () => {
   const PHASE = '__PHASE__';
-  const S = window.__sandwich, WH = S.webcamHands, { POSE, curlOf } = await import('/src/interact/hand.js'), { WEBCAM_DEFAULTS: D } = await import('/src/interact/webcam.js');
+  const S = window.__sandwich, THREE = await import('three'), WH = S.webcamHands, { POSE, curlOf } = await import('/src/interact/hand.js'), { WEBCAM_DEFAULTS: D } = await import('/src/interact/webcam.js');
   const raf = () => new Promise(r => requestAnimationFrame(r)), ms = () => performance.now();
   const sleep = async t => { const t0 = ms(); while (ms() - t0 < t) await raf(); };
   const until = async (f, t = 60000) => { const t0 = ms(); while (!f()) { if (ms() - t0 > t) return false; await raf(); } return true; };
@@ -122,15 +122,20 @@
     if (PHASE === 'full') {
       const V3 = S.camera.position.constructor, T = S.L.task, R = S.hands[1], B = cal.box, pos = e => e.root.getWorldPosition(new V3());
       const now = () => S.world.t * 1000, wait = async t => { const a = now(); while (now() - a < t) await raf(); };
-      const aim = p => { const n = p.clone().project(S.camera); state.R.u = B.u0 + (n.x + 1) / 2 * (B.u1 - B.u0); state.R.v = B.v0 + (1 - n.y) / 2 * (B.v1 - B.v0); };
+      const aim = async p => {      // glide there, as a hand does (a hand that jumps across the picture can swap identities with the other)
+        const n = p.clone().project(S.camera), u = B.u0 + (n.x + 1) / 2 * (B.u1 - B.u0), v = B.v0 + (1 - n.y) / 2 * (B.v1 - B.v0), u0 = state.R.u, v0 = state.R.v, a = now();
+        for (;;) { const f = Math.min(1, (now() - a) / 500); state.R.u = u0 + (u - u0) * f; state.R.v = v0 + (v - v0) * f; if (f >= 1) break; await raf(); }
+      };
       const ramp = async (key, to, t = 350) => { const from = state.R[key], a = now(); for (;;) { const u = Math.min(1, (now() - a) / t); state.R[key] = from + (to - from) * u; if (u >= 1) break; await raf(); } await wait(300); };
       const arrive = async p => { const n = p.clone().project(S.camera); await until(() => Math.hypot(WH.st[1].ndc.x - n.x, WH.st[1].ndc.y - n.y) < 0.015, 8000); await wait(300); };
-      state.L.u = 0.26; state.L.v = 0.86; await wait(400);      // the left hand moves out of the way, low in the picture (hands that overlap can swap identities; one held at the side edge steps)
-      aim(pos(T.bag.clip)); await arrive(pos(T.bag.clip));
+      { const a = now(); while (now() - a < 500) { const f = (now() - a) / 500; state.L.u = 0.36 - 0.1 * f; state.L.v = 0.55 + 0.31 * f; await raf(); } state.L.u = 0.26; state.L.v = 0.86; await wait(300); }      // the left hand moves out of the way, low in the picture (hands that overlap can swap identities; one held at the side edge steps)
+      const clipMid = new THREE.Box3().setFromObject(T.bag.clip.root).getCenter(new V3());      /* the middle of the clip, not its origin (which sits at an edge) */
+      await aim(clipMid); await arrive(clipMid);
       { const n = pos(T.bag.clip).project(S.camera); check('with the calibrated box, the hand lands on the clip', R.tracked && R.hover?.id === 'bread_clip', [R.hover?.id, r3(S.body.x), [r3(n.x), r3(n.y)], WH.st[1].ndc.toArray().map(r3), [r3(state.R.u), r3(state.R.v)], R.tracked, R.pinch, WH.st[1].pin, WH.st[1].grb, r3(WH.st[1].curl), r3(WH.st[1].pinchD), WH.cal.gOn.map(r3), WH.cal.pOn.map(r3)]); }
-      await ramp('pinch', PINCH);
-      check('the loose pinch now grabs it', R.holding?.id === 'bread_clip', [R.holding?.id, r3(WH.st[1].pinchD)]);
-      aim(new V3(0.42, 0.91, -0.1)); await arrive(new V3(0.42, 0.91, -0.1));
+      const ptr = []; let pw = true; (async () => { while (pw) { ptr.push([R.pickHint?.id ?? '-', R.hover?.id ?? '-', WH.st[1].ndc.toArray().map(r3), r3(WH.st[1].pinchD), R.pinch, R.holding?.id ?? '-', r3(S.body.x), r3(S.camera.rotation.y)]); await raf(); } })();
+      await ramp('pinch', PINCH); pw = false;
+      check('the loose pinch now grabs it', R.holding?.id === 'bread_clip', [R.holding?.id, r3(WH.st[1].pinchD), ptr.filter((x, k, a) => !k || JSON.stringify(x.slice(0, 2).concat(x[4], x[5])) !== JSON.stringify(a[k - 1].slice(0, 2).concat(a[k - 1][4], a[k - 1][5])))]);
+      await aim(new V3(0.42, 0.91, -0.1)); await arrive(new V3(0.42, 0.91, -0.1));
       const push = async f => { await ramp('k', K0 * Math.exp(f * PUSH), 400); await wait(500); return [R.press, r3(WH.st[1].lift)]; };
       const a = await push(0.42), b = await push(0.75), c = await push(0.5), d = await push(0.25);
       check('touches down past 60% of the calibrated push, not before', !a[0] && b[0], [a, b]);

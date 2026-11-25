@@ -227,6 +227,38 @@ larger thing it sits on. The reverse never happens.
 forward and up, taking the clip, putting it down by lowering, a slice from the
 bag to the plate, unscrewing the lid by turning the hand, and stepping.
 
+### Head tracking
+
+With webcam hands (or with any input, `head=webcam`), turning the head turns
+the view. MediaPipe's face landmarker gives the head's pose as a 4×4 transform
+of a canonical face; the face's forward direction gives yaw and pitch, its
+position gives lean. The view turns by more than the head (past a 2° dead
+zone, view = 2.2a + 2.6a² rad for a head turn of a rad: 11° → 25°, 20° → 55°,
+29° → 90°; pitch a little less), so the eyes stay on the screen while the view
+swings round, as in head-tracked desktop games. Leaning shifts the viewpoint
+by the same distance (up to ±15 cm sideways, ±12 cm forward), which gives
+parallax. Straight ahead is the median pose over the first second of looking
+at the screen; R recentres, H turns head tracking off and on. If the face is
+lost, the view holds for 0.5 s and then eases back to straight ahead.
+
+The head offsets are added on top of the body's own facing, so the shoulders,
+the reach limit and the counter mapping do not move with the head: hands stay
+where they are on the counter while you look around. (In the upright mapping
+the hands point through the screen, so they follow the view.) The face model
+runs on every other camera frame when the hands are also tracked. The camera
+pose (already logged as `head` in every frame) now includes the head-tracking
+view, and the offsets themselves are logged per frame as `headtrack`
+(yaw, pitch, dx, dy, dz), with `head_neutral` and `head_tracking` events.
+
+`tools/test_controls.py head` checks this with synthetic face transforms.
+
+Hands are told apart by continuity from each hand's last raw position in the
+picture, nudged by the tracker's own left/right label. (Continuity from the
+smoothed position, as before, let a hand moving quickly look closer to where
+the other hand's lagging smoothed position still was, and swap identities.)
+The direction of yaw follows MediaPipe's documented convention but has not yet
+been checked with a real face; `headflip=1` in the URL reverses it.
+
 ### Upright mapping
 
 

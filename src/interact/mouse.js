@@ -5,14 +5,18 @@ import { Reacher } from './reach.js';
 import { clamp } from '../util/util.js';
 
 const _v = new THREE.Vector3();
+const _yAxis = new THREE.Vector3(0, 1, 0), _e = new THREE.Euler();
 
 export class Body {
   constructor() { this.x = 0; this.targetX = 0; this.z = 0.5; this.yaw = 0; this.pitch = -0.62; this.eye = 1.62; this.xMin = -2.0; this.xMax = 1.35; }
   update(dt) { this.x += (this.targetX - this.x) * (1 - Math.exp(-dt * 6)); }
   step(dx, bus) { const nx = clamp(this.targetX + dx, this.xMin, this.xMax); if (nx !== this.targetX) { this.targetX = nx; bus?.emit('step', { x: +nx.toFixed(3) }); } }
+  // head: view offsets from head tracking (yaw, pitch in rad; dx, dy, dz in m, in the body's frame), on top of the body
   applyToCamera(cam) {
+    const H = this.head;
     cam.position.set(this.x, this.eye, this.z);
-    cam.quaternion.setFromEuler(new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ'));
+    if (H) cam.position.add(_v.set(H.dx, H.dy, H.dz).applyAxisAngle(_yAxis, this.yaw));
+    cam.quaternion.setFromEuler(_e.set(clamp(this.pitch + (H?.pitch ?? 0), -1.4, 0.7), this.yaw + (H?.yaw ?? 0), 0, 'YXZ'));
   }
   shoulder(side, out = new THREE.Vector3()) {
     return out.set(side === 'L' ? -0.18 : 0.18, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw).add(_v.set(this.x, 1.38, this.z - 0.3));   // the viewpoint sits back from the counter; the shoulders are at its edge

@@ -35,7 +35,7 @@ export class CamPreview {
   constructor(vision, webcamHands, { width = 272 } = {}) {
     Object.assign(this, { vision, wh: webcamHands });
     const el = this.el = document.createElement('div'); el.id = 'campip';
-    el.innerHTML = '<canvas></canvas><div class="row"><span class="st"></span><span class="hint">C: hide · K: calibrate</span></div>';
+    el.innerHTML = '<canvas></canvas><div class="row"><span class="st"></span><span class="hint">C: hide · K: calibrate · R: recentre view · H: head on/off</span></div>';
     document.body.appendChild(el);
     this.cv = el.querySelector('canvas'); this.cv.width = width; this.cv.height = Math.round(width * 9 / 16);
     this.ctx = this.cv.getContext('2d'); this.stEl = el.querySelector('.st'); this.last = 0;
@@ -60,7 +60,8 @@ export class CamPreview {
     });
     const tag = s => `${s.side} ${s.seen ? (s.pinch ? '●' : '○') : '–'}`;
     const far = S.find(s => s.seen && Math.abs(s.dist) > 0.45);
-    this.stEl.textContent = `${tag(S[0])}  ${tag(S[1])}  ·  ${this.wh.rate < 9.5 ? this.wh.rate.toFixed(1) : Math.round(this.wh.rate)} Hz${far ? (far.dist > 0 ? '  ·  move back' : '  ·  move closer') : ''}`;
+    const hs = this.head?.status(), htag = hs ? (!hs.enabled ? 'head off  ·  ' : !hs.seen ? 'head: no face  ·  ' : `head ${hs.yawDeg > 0 ? '◀' : hs.yawDeg < 0 ? '▶' : '·'}${Math.abs(hs.yawDeg)}°  ·  `) : '';
+    this.stEl.textContent = htag + `${tag(S[0])}  ${tag(S[1])}  ·  ${this.wh.rate < 9.5 ? this.wh.rate.toFixed(1) : Math.round(this.wh.rate)} Hz${far ? (far.dist > 0 ? '  ·  move back' : '  ·  move closer') : ''}`;
     this.el.classList.toggle('lost', !S[0].seen && !S[1].seen);
   }
 }

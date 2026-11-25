@@ -18,6 +18,7 @@ import { WebcamHands } from './interact/webcam.js';
 import { Reacher } from './interact/reach.js';
 import { CamPreview } from './ui/campreview.js';
 import { CalibrationUI } from './ui/calibration.js';
+import { HeadTracker } from './interact/headtrack.js';
 import { GraspAids } from './ui/aids.js';
 import { XRHands } from './interact/xr.js';
 import { Autopilot } from './interact/autopilot.js';
@@ -84,7 +85,7 @@ async function start(cfg) {
   const fitCamera = () => { const a = innerWidth / innerHeight; camera.aspect = a; camera.fov = a >= 1.3 ? 56 : Math.min(98, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(33)) / a))); camera.updateProjectionMatrix(); };
   fitCamera(); setAssetDetail(cfg.detail);
   const world = new World(scene);
-  window.__sandwich = { world, scene, camera, renderer, cfg };
+  window.__sandwich = { get headTracker() { return headTracker; }, world, scene, camera, renderer, cfg };
 
   const [manifest, taskDef] = await Promise.all([fetch('assets/manifest.json').then(r => r.json()), fetch('task/sandwich_task.json').then(r => r.json())]);
   const M = buildMaterials(manifest); world.M = M;
@@ -109,23 +110,25 @@ async function start(cfg) {
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.5.2' };
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.6.0' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;
   const monitor = new TaskMonitor(world, L.task, taskDef, cfg);
 
   // ---- inputs ----
-  let input = null, vision = null, xrHands = null, autopilot = null, webcamHands = null;
+  let input = null, vision = null, xrHands = null, autopilot = null, webcamHands = null, headTracker = null;
+  // head tracking from the webcam: on by default with webcam hands (head=auto), or asked for (head=webcam), never in a headset
+  const headOn = cfg.input !== 'xr' && cfg.input !== 'autopilot' && (cfg.head === 'webcam' || ((cfg.head || 'auto') === 'auto' && cfg.input === 'webcam'));
   if (cfg.input === 'mouse') input = new MouseInput(canvas, camera, world, hands, manip, body);
   if (cfg.input === 'touch') { input = new TouchInput(canvas, camera, world, hands, manip, body); toast('Tap to grab or put down · drag to move', 5000); setTimeout(() => $('#instruction').classList.add('dim'), 9000); }
   if (cfg.input === 'autopilot') { autopilot = new Autopilot(world, L.task, hands, manip, body, camera, cfg.seed); autopilot.speed = cfg.speed; }
-  if (cfg.input === 'webcam' || cfg.gaze === 'webcam') {
-    if (params.get('fakecam') === '1') { vision = Vision.fake(); window.__fakeHands = r => { vision.handResult = r; vision.frameT = performance.now() / 1000; }; }
+  if (cfg.input === 'webcam' || cfg.gaze === 'webcam' || headOn) {
+    if (params.get('fakecam') === '1') { vision = Vision.fake(); window.__fakeHands = r => { vision.handResult = r; vision.frameT = performance.now() / 1000; }; window.__fakeFace = r => { vision.faceResult = r; }; }
     else {
       vision = new Vision($('#cam'));
       toast('Starting camera…', 6000);
-      meta.camera = await vision.start({ hands: cfg.input === 'webcam', face: cfg.gaze === 'webcam' });
+      meta.camera = await vision.start({ hands: cfg.input === 'webcam', face: cfg.gaze === 'webcam' || headOn, faceEvery: cfg.gaze !== 'webcam' && cfg.input === 'webcam' ? 2 : 1 });
     }
   }
   let preview = null;
@@ -138,6 +141,8 @@ async function start(cfg) {
   if (cfg.input === 'xr') xrHands = new XRHands(renderer, scene, hands, world.bus);
   const aids = cfg.aids !== 'off' && cfg.input !== 'autopilot' ? new GraspAids(scene, world, hands, manip, camera) : null;
   meta.aids = !!aids; meta.handtone = cfg.handtone || 'neutral'; if (webcamHands) meta.webcammap = webcamHands.mapping;
+  if (headOn) { headTracker = new HeadTracker(vision, world.bus, { flipYaw: params.get('headflip') === '1' }); if (preview) preview.head = headTracker; }
+  meta.head = headOn ? 'webcam' : 'off';
 
   // ---- gaze ----
   const gaze = new Gaze(world, camera, cfg, taskDef.thresholds);
@@ -176,7 +181,7 @@ async function start(cfg) {
   $('#instruction').textContent = instruction;
 
   let tTrial = null, ended = false, lastAOI = -1, lastFrame = -1, fpsN = 0, fpsT = 0, lastBackup = 0;
-  const begin = () => { logger.start(performance.now() / 1000); tTrial = 0; world.clockT = 0; logger.event('trial_start', { t: 0, instruction }); };
+  const begin = () => { logger.start(performance.now() / 1000); tTrial = 0; world.clockT = 0; logger.event('trial_start', { t: 0, instruction }); if (headTracker) toast('Turn your head to look around · R recentres · H turns it off', 5000); };
 
   world.bus.on('bell', () => { if (tTrial !== null && tTrial > 3 && !ended) endTrial(); });
   function endTrial() {
@@ -211,6 +216,7 @@ async function start(cfg) {
     if (autopilot && tTrial !== null) autopilot.update(dt * (autopilot.speed || 1));
     if (webcamHands) { body.update(dt); webcamHands.update(dt, tAbs); }
     if (xrHands) xrHands.update(dt);
+    if (headTracker) headTracker.update(dt, tAbs, body);
     if (cfg.input !== 'xr') body.applyToCamera(camera);
     manip.update(dt, hands, tt);
     input?.postUpdate();

@@ -4,9 +4,11 @@ const BASE = new URL('../../vendor/mediapipe/', import.meta.url).href;
 
 export class Vision {
   constructor(video) { this.video = video; this.hands = null; this.face = null; this.lastT = -1; this.handResult = null; this.faceResult = null; this.ready = false; }
-  // test double: no camera, results injected with window.__fakeHands(result)
+  // test double: no camera, results injected with window.__fakeHands(result) / window.__fakeFace(result)
   static fake() { const v = new Vision({ videoWidth: 1280, videoHeight: 720, readyState: 0 }); v.poll = () => false; v.frameT = 0; return v; }
-  async start({ hands = false, face = false } = {}) {
+  // faceEvery: run the face model on every n-th new video frame (head pose is slow; hands get the rest)
+  async start({ hands = false, face = false, faceEvery = 1 } = {}) {
+    this.faceEvery = faceEvery; this._n = 0;
     const mp = await import(BASE + 'vision_bundle.mjs');
     const fileset = await mp.FilesetResolver.forVisionTasks(BASE + 'wasm');
     // GPU inference where available, CPU otherwise (some browsers / drivers refuse the GPU delegate)
@@ -30,7 +32,7 @@ export class Vision {
     if (!this.ready || this.video.readyState < 2) return false;
     const vt = this.video.currentTime; if (vt === this.lastT) return false; this.lastT = vt;
     if (this.hands) this.handResult = this.hands.detectForVideo(this.video, tMs);
-    if (this.face) this.faceResult = this.face.detectForVideo(this.video, tMs);
+    if (this.face && (this._n++ % this.faceEvery === 0)) this.faceResult = this.face.detectForVideo(this.video, tMs);
     this.frameT = tMs / 1000;
     return true;
   }
