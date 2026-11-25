@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { isDescendant } from '../core/world.js';
 
-const _ray = new THREE.Raycaster(), _plane = new THREE.Plane(), _v = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _down = new THREE.Vector3(0, -1, 0);
+const _ray = new THREE.Raycaster(), _plane = new THREE.Plane(), _v = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _down = new THREE.Vector3(0, -1, 0), _w = new THREE.Vector3(), _w2 = new THREE.Vector3();
 
 export class Reacher {
   constructor(camera, world, manip, body) { Object.assign(this, { camera, world, manip, body }); this.rayTargets = null; this.maxReach = 1.0 /* arm plus a lean; beyond that, step sideways or use the other hand */; this.onLimit = null; this._lim = -1e9; }
@@ -83,7 +83,11 @@ export class Reacher {
       // a small thing already offered (the clip, the lid) stays offered until the hand is clearly off it, so tracker
       // jitter cannot swap it for the bigger thing it sits on in the moment of the pinch. Never the other way round.
       const prev = hand.pickHint;
-      if (prev && e && e !== prev && !prev.heldBy && this.manip.sizeOf(prev) < this.manip.sizeOf(e) && this.manip.distanceTo(prev, under ? hit.point : T) < (under ? 0.045 : 0.065)) e = prev;      /* looser than the 3 cm that picks it */
+      // "Still by it" is judged sideways, at the thing's own height: a hand drifting just past the clip's edge sends the
+      // ray down to the counter 8 cm below, which says nothing about how far the hand is from the clip.
+      const near = prev && (this.manip.distanceTo(prev, _w.set(T.x, prev.root.getWorldPosition(_w2).y, T.z)) < 0.035 || this.manip.distanceTo(prev, under ? hit.point : T) < (under ? 0.045 : 0.065));
+      if (prev && e && e !== prev && !prev.heldBy && this.manip.sizeOf(prev) < this.manip.sizeOf(e) && near) e = prev;
+      hand.pickWhy = { under: !!under, hit: hit ? this.world.entityOf(hit.object)?.id ?? hit.object.name : null, hy: hit ? +hit.point.y.toFixed(3) : null, Ty: +T.y.toFixed(3), Py: +P.y.toFixed(3), prev: prev?.id, near: !!near };      /* for diagnosing picks */      /* looser than the 3 cm that picks it */
       hand.pickHint = e && !(e.role === 'fixture' && !e.constraint) ? e : null; hand.pickPoint = (under ? hit.point : T).clone();
       if (under && hand.pickHint) T.y = hit.point.y + hover;      /* something to take right below: the hand dips onto it, so it is held at the hand */
     }

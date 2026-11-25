@@ -287,6 +287,28 @@ front (index curling over to meet the thumb, other fingers up) rather than as
 the tracker's pinch shape, which curls the fingers toward the camera and reads
 as a fist when seen head-on.
 
+The steps are deliberately forgiving (v0.5.2). Holds are short (0.6 s; 0.9 s
+for open hands). "Still" allows the slow drift of a hand held in the air, and the
+poses ask for modest movements (a reach that makes the hand look 6% bigger, a
+raise of 5% of the picture). Losing the pose for a moment pauses the progress
+ring, and only after 0.4 s does it drain, at half speed, so a twitch costs a
+fraction of a second rather than a restart. Once one hand has finished, the
+other has 6 s more before the step moves on without it (that hand then borrows
+the finished hand's values). A step that runs out of time with a hand at least
+half way keeps that hand's measurement, and after 8 s with no progress a
+one-line tip appears ("reach a little farther…"). A returning participant is
+re-measured only if their open hand reads more than 55% differently from last
+time. One thing is deliberately not loosened: the sweep only finishes once the
+hands have gone well beyond where they started and the box has stopped growing
+for 2.5 s (a participant who takes a moment to begin, or pauses at a corner,
+would otherwise end up with a tiny range); "Done" ends it by hand.
+
+In the counter mapping, a small offered thing is kept while the hand is still
+beside it, judged sideways at its own height. (A hand drifting just past the
+edge of the clip sends the downward ray to the counter 8 cm below, which says
+nothing about how far the hand is from the clip; judging from that point let
+the bag win now and then.)
+
 Anything that cannot be measured (a pose skipped or timed out) keeps its
 standard value, and a hand that never appears borrows the other hand's values.
 While the poses are being measured the virtual hands are parked, so pinching

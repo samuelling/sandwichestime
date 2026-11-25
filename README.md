@@ -76,7 +76,7 @@ On a touch device the page picks touch controls and no post-processing by itself
 python3 -m http.server 8811 &
 python3 tools/test_controls.py synthetic   # the upright webcam mapping, driven by generated hand landmarks (no camera)
 python3 tools/test_controls.py counter     # the counter mapping: generated palm-down hands in front of a pinhole camera
-python3 tools/test_controls.py calibration # the guided webcam calibration, with generated hands
+python3 tools/test_controls.py calibration # the guided webcam calibration, with generated hands (tidy, one-handed, twitchy)
 python3 tools/test_controls.py mouse       # real mouse events
 python3 tools/test_controls.py touch       # an emulated phone, real touch events
 python3 tools/test_controls.py camera --video hands.y4m --shot out.png   # a video file as a fake webcam

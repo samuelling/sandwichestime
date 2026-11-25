@@ -7,7 +7,7 @@
   const raf = () => new Promise(r => requestAnimationFrame(r)), ms = () => performance.now();
   const sleep = async t => { const t0 = ms(); while (ms() - t0 < t) await raf(); };
   const until = async (f, t = 60000) => { const t0 = ms(); while (!f()) { if (ms() - t0 > t) return false; await raf(); } return true; };
-  const out = {}, check = (name, ok, info) => { out[name] = { ok: !!ok, ...(info !== undefined ? { info } : {}) }; };
+  const out = window.__cout = {}, check = (name, ok, info) => { out[name] = { ok: !!ok, ...(info !== undefined ? { info } : {}) }; };
   const r3 = x => (x == null ? x : +(+x).toFixed(3));
   // camera: focal length in image heights, 16:9 picture. Real hand state: X to the participant's right, Y down
   // from the camera, Z away from the camera (metres); yaw = turning the hand about the vertical.
@@ -84,9 +84,10 @@
   // 1) the clip: hover over it, pinch, carry, lower to put it down
   await goto('L', pos(T.bag.clip).add(new V3(0, 0.08, 0)), 0.005);
   check('hovering a little above the clip offers it', Lh.hover?.id === 'bread_clip', Lh.hover?.id);
-  const seenHint = []; let watch = true; (async () => { while (watch) { seenHint.push([Lh.pickHint?.id ?? '-', r3(WH.st[0].pinchD), Lh.pinch]); await raf(); } })();
+  const seenHint = []; let watch = true; (async () => { while (watch) { seenHint.push([Lh.pickHint?.id ?? '-', r3(WH.st[0].pinchD), Lh.pinch, JSON.stringify(Lh.pickWhy)]); await raf(); } })();
   await ramp(L, 'pinch', 1); watch = false;
   check('pinch takes the clip and opens the bag', Lh.holding?.id === 'bread_clip' && ev('bag_open').length === 1, [Lh.holding?.id, seenHint.filter((x, k, a) => !k || x[0] !== a[k - 1][0] || x[2] !== a[k - 1][2])]);
+  if (Lh.holding?.id !== 'bread_clip') { run = false; return JSON.stringify({ pass: false, out, errors: window.__errors || null, trace: seenHint.slice(0, 12) }); }     /* the rest depends on it */
   const spot = new V3(body.x - 0.6, 0, -0.12);
   await goto('L', spot.clone().setY(1.05), 0.02);
   check('carried away from the bag', Lh.holding?.id === 'bread_clip', [Lh.holding?.id, P(0).toArray().map(r3)]);

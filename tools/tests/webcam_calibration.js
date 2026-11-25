@@ -48,6 +48,23 @@
     check('saved calibration is reused', WH.cal.source === 'saved' && saved && WH.cal.pOn[1] === saved.pOn[1] && WH.cal.box.u0 === saved.box.u0 && WH.cal.liftGain[0] === saved.liftGain[0], WH.cal.source);
     const c = S.logger.calibration.filter(e => e.calType === 'webcam_hands' || e.type === 'webcam_hands' || e.data?.type === 'webcam_hands');
     check('logged as a quick calibration', JSON.stringify(S.logger.calibration).includes('"mode":"quick"'), c.length);
+  } else if (PHASE === 'wobbly') {
+    // a less tidy participant: hands that twitch every 0.8 s while "still", and a left hand that never quite pinches
+    const t0 = ms();
+    await until(() => WH.calView?.id === 'open' && WH.calView.phase === 'do', 30000);
+    let twitch = true; (async () => { while (twitch) { await sleep(650); for (const s of [state.L, state.R]) s.u += 0.05; await sleep(150); for (const s of [state.L, state.R]) s.u -= 0.05; } })();
+    await until(() => WH.calView?.id === 'pinch', 30000);
+    const tOpen = (ms() - t0) / 1000; twitch = false;
+    check('twitchy hands still get through "open hands"', WH.calView?.id === 'pinch', tOpen.toFixed(1) + ' s');
+    await until(() => WH.calView?.phase === 'do', 20000);
+    const tp = ms(); state.R.pinch = PINCH; state.L.pinch = 0.12;      /* the left hand barely closes */
+    await until(() => WH.calView?.id !== 'pinch', 40000);
+    const tPinch = (ms() - tp) / 1000;
+    check('one hand that never pinches does not hold up the other (about 6 s, not the 25 s timeout)', WH.calView?.id === 'grab' && tPinch < 12, tPinch.toFixed(1) + ' s');
+    document.querySelector('#handcal .skipall').click();
+    await until(() => !WH.calibrating, 8000);
+    const c = WH.cal, ev = S.logger.calibration.filter(e => JSON.stringify(e).includes('webcam_hands')).at(-1), steps = ev?.steps || ev?.data?.steps || {};
+    check('the left hand borrows the right hand\'s pinch', c.pOn[0] === c.pOn[1] && c.fallback.pinch[0] && !c.fallback.pinch[1] && steps.open === 'ok' && steps.pinch === 'ok', [c.pOn.map(r3), c.fallback.pinch, steps]);
   } else {
     // ---- the four poses ----
     // record, per step, which phases were shown and whether anything was measured during the demo
@@ -107,11 +124,13 @@
       const now = () => S.world.t * 1000, wait = async t => { const a = now(); while (now() - a < t) await raf(); };
       const aim = p => { const n = p.clone().project(S.camera); state.R.u = B.u0 + (n.x + 1) / 2 * (B.u1 - B.u0); state.R.v = B.v0 + (1 - n.y) / 2 * (B.v1 - B.v0); };
       const ramp = async (key, to, t = 350) => { const from = state.R[key], a = now(); for (;;) { const u = Math.min(1, (now() - a) / t); state.R[key] = from + (to - from) * u; if (u >= 1) break; await raf(); } await wait(300); };
-      aim(pos(T.bag.clip)); await wait(1200);
-      check('with the calibrated box, the hand lands on the clip', R.tracked && R.hover?.id === 'bread_clip', R.hover?.id);
+      const arrive = async p => { const n = p.clone().project(S.camera); await until(() => Math.hypot(WH.st[1].ndc.x - n.x, WH.st[1].ndc.y - n.y) < 0.015, 8000); await wait(300); };
+      state.L.u = 0.26; state.L.v = 0.86; await wait(400);      // the left hand moves out of the way, low in the picture (hands that overlap can swap identities; one held at the side edge steps)
+      aim(pos(T.bag.clip)); await arrive(pos(T.bag.clip));
+      { const n = pos(T.bag.clip).project(S.camera); check('with the calibrated box, the hand lands on the clip', R.tracked && R.hover?.id === 'bread_clip', [R.hover?.id, r3(S.body.x), [r3(n.x), r3(n.y)], WH.st[1].ndc.toArray().map(r3), [r3(state.R.u), r3(state.R.v)], R.tracked, R.pinch, WH.st[1].pin, WH.st[1].grb, r3(WH.st[1].curl), r3(WH.st[1].pinchD), WH.cal.gOn.map(r3), WH.cal.pOn.map(r3)]); }
       await ramp('pinch', PINCH);
       check('the loose pinch now grabs it', R.holding?.id === 'bread_clip', [R.holding?.id, r3(WH.st[1].pinchD)]);
-      aim(new V3(0.42, 0.91, -0.1)); await wait(1400);
+      aim(new V3(0.42, 0.91, -0.1)); await arrive(new V3(0.42, 0.91, -0.1));
       const push = async f => { await ramp('k', K0 * Math.exp(f * PUSH), 400); await wait(500); return [R.press, r3(WH.st[1].lift)]; };
       const a = await push(0.42), b = await push(0.75), c = await push(0.5), d = await push(0.25);
       check('touches down past 60% of the calibrated push, not before', !a[0] && b[0], [a, b]);

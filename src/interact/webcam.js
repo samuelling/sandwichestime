@@ -203,23 +203,33 @@ export class WebcamHands {
     };
     // One pose: `ok(i, S, m)` says whether hand i is doing it; samples are taken while it is. Done when every hand
     // that is needed has held for `hold` s. A hand that never shows up is dropped once the other has finished.
-    const runStep = async ({ id, title, hint, hold, timeout, ok, sample, warn, meter, show = id, showFor = 0 }) => {
+    // Forgiving: losing the pose for a moment only pauses the ring (after 0.4 s it drains, slowly, rather than
+    // resetting); once one hand is done the other gets 6 s more before the step finishes without it (it then borrows
+    // the other hand's values); a step that times out half done keeps what it measured; a tip appears when stuck.
+    const runStep = async ({ id, title, hint, hold, timeout, ok, sample, warn, meter, tip = '', show = id, showFor = 0 }) => {
       Object.assign(view, { step: view.step + 1, id, title, hint, warn: '', prog: [0, 0], skip: false, done: false, meter: null });
       await demo(show, showFor);
-      const t0 = ms(), held = [0, 0], bad = [0, 0], buf = [[], []];
+      const t0 = ms(), held = [0, 0], bad = [0, 0], buf = [[], []]; let oneDone = null;
       for (;;) {
         await frame();
         const { dt, fresh } = tick();
         if (skipAll || view.skip) return (steps[id] = 'skipped', null);
-        if (ms() - t0 > timeout * 1000) return (steps[id] = 'timeout', null);
+        if (ms() - t0 > timeout * 1000) {      // out of time: keep any hand that got at least half way
+          const part = buf.map((b, i) => (view.need[i] && b.length >= 3 && held[i] >= 0.5 * T(hold) ? b : null));
+          if (part.some(Boolean)) { steps[id] = 'partial'; view.need = part.map(Boolean); return part; }
+          return (steps[id] = 'timeout', null);
+        }
         st.forEach((S, i) => {
           if (!view.need[i]) return;
-          if (S.seen && ok(i, S, mo[i])) { held[i] += dt; bad[i] = 0; if (fresh) buf[i].push(sample(i, S)); }
-          else if ((bad[i] += dt) > 0.25 && held[i] < T(hold)) { held[i] = 0; buf[i].length = 0; }     /* a single dropped frame does not restart the hold */
+          if (S.seen && ok(i, S, mo[i])) { held[i] += dt; bad[i] = 0; if (fresh) { buf[i].push(sample(i, S)); if (buf[i].length > 90) buf[i].shift(); } }
+          else if (held[i] < T(hold) && (bad[i] += dt) > 0.4) held[i] = Math.max(0, held[i] - 0.5 * dt);
           view.prog[i] = clamp(held[i] / T(hold), 0, 1);
         });
-        for (const i of [0, 1]) if (view.need[i] && mo[i].unseen > 4 && view.need[1 - i] && held[1 - i] >= T(hold)) { view.need[i] = false; view.prog[i] = 0; }
-        view.warn = !st[0].seen && !st[1].seen && Math.min(mo[0].unseen, mo[1].unseen) > 1.2 ? (CM ? 'I can’t see your hands. Check the light, and hold them over the counter where the camera can see them (tilt the screen back if they are below the picture).' : 'I can’t see your hands. Check the light and hold them up inside the picture.') : (warn?.() || '');
+        const doneI = [0, 1].map(i => view.need[i] && held[i] >= T(hold) && buf[i].length >= 3);
+        if (oneDone === null && doneI.some(Boolean) && !doneI.every((d, i) => d || !view.need[i])) oneDone = ms();
+        for (const i of [0, 1]) if (view.need[i] && !doneI[i] && doneI[1 - i] && (mo[i].unseen > 2.5 || ms() - oneDone > T(6) * 1000)) { view.need[i] = false; view.prog[i] = 0; }
+        const stuck = (ms() - t0) / 1000 > T(8) && view.prog.every((p, i) => !view.need[i] || p < 0.3);
+        view.warn = !st[0].seen && !st[1].seen && Math.min(mo[0].unseen, mo[1].unseen) > 1.2 ? (CM ? 'I can’t see your hands. Check the light, and hold them over the counter where the camera can see them (tilt the screen back if they are below the picture).' : 'I can’t see your hands. Check the light and hold them up inside the picture.') : (warn?.() || (stuck && tip) || '');
         if (meter) view.meter = meter();
         if ([0, 1].every(i => !view.need[i] || (held[i] >= T(hold) && buf[i].length >= 3)) && view.need.some(Boolean)) break;
       }
@@ -237,8 +247,8 @@ export class WebcamHands {
       }
       return st[0].seen !== st[1].seen ? 'Show both hands (or keep one up: it will carry on with one).' : '';
     };
-    const openOk = (i, S, m) => m.sp < 0.15 && Math.exp(S.lnk) < 3.2 && Math.exp(S.lnk) > 0.7;      /* no test on the gap itself: whatever this person's relaxed hand reads as IS "open" */
-    const openStep = (id, title, hint, timeout, showFor) => runStep({ id, title, hint, hold: 1.2, timeout, show: D_('open'), showFor, ok: openOk, sample: (i, S) => ({ lnk: S.rlnk, pd: S.pinchD, cu: S.curl, u: S.ru, v: S.rv, pitch: CM && S.wl ? this.pitchOf(S.wl) : 0 }), warn: framing });
+    const openOk = (i, S, m) => m.sp < 0.3 && Math.exp(S.lnk) < 4 && Math.exp(S.lnk) > 0.5;      /* no test on the gap itself: whatever this person's relaxed hand reads as IS "open" */
+    const openStep = (id, title, hint, timeout, showFor) => runStep({ id, title, hint, hold: 0.9, timeout, show: D_('open'), showFor, tip: 'Hold your hands still for a moment, with all of each hand in the picture.', ok: openOk, sample: (i, S) => ({ lnk: S.rlnk, pd: S.pinchD, cu: S.curl, u: S.ru, v: S.rv, pitch: CM && S.wl ? this.pitchOf(S.wl) : 0 }), warn: framing });
     const takeOpen = b => b.forEach((a, i) => { if (!a) return; res.lnk0[i] = median(a.map(x => x.lnk)); res.open[i] = median(a.map(x => x.pd));
       res.rest[i] = { v: median(a.map(x => x.v)), u: median(a.map(x => x.u)), lnk: res.lnk0[i] }; res.pitch[i] = median(a.map(x => x.pitch)); res.curlOpen[i] = median(a.map(x => x.cu));
       const ju = jitterOf(a.map(x => x.u)), jv = jitterOf(a.map(x => x.v)); res.jitter[i] = ju === null ? null : Math.hypot(ju, jv) / Math.SQRT2; });
@@ -248,7 +258,7 @@ export class WebcamHands {
       const b = await openStep('check', 'Welcome back', CM ? 'Hold your hands palm-down over the counter for a moment. Your saved calibration will be used.' : 'Hold your hands up, palms to the screen, for a moment. Your saved calibration will be used.', 20, 1.6);
       if (b) {
         takeOpen(b);
-        const off = [0, 1].some(i => res.open[i] !== null && saved.measured?.open?.[i] && Math.abs(res.open[i] / saved.measured.open[i] - 1) > 0.4);
+        const off = [0, 1].some(i => res.open[i] !== null && saved.measured?.open?.[i] && Math.abs(res.open[i] / saved.measured.open[i] - 1) > 0.55);
         if (off) { view.redo = true; view.note = 'Your hands look different from last time, so let’s measure again.'; }
       }
       if (view.redo && !skipAll) { quick = false; Object.assign(view, { step: 0, n: NSTEP, quick: false, redo: false, need: [true, true] }); delete steps.check; }
@@ -259,35 +269,35 @@ export class WebcamHands {
       const b1 = await openStep('open', CM ? 'Hands over the counter' : 'Open hands', CM ? 'Sit about an arm’s length from the screen. Hold both hands palm-down in front of you, fingers pointing at the screen, as if hovering just above a kitchen counter. Relax them and keep them still.' : 'Sit about an arm’s length from the camera. Hold both hands up where you would comfortably work: palms toward the screen, fingers up, relaxed. Keep them still.', 45, 2.6);
       if (b1) takeOpen(b1);
       // 2 pinch
-      const drop = i => { const o = res.open[i] ?? res.open[1 - i] ?? 0.8; return Math.max(0.1, 0.25 * o) / o; };      /* how far the gap must close (as a fraction of open) to count as an attempt at a pinch */
+      const drop = i => { const o = res.open[i] ?? res.open[1 - i] ?? 0.8; return Math.max(0.08, 0.18 * o) / o; };      /* how far the gap must close (as a fraction of open) to count as an attempt at a pinch */
       const opn = i => res.open[i] ?? res.open[1 - i] ?? 0.8;
-      const b2 = skipAll ? null : await runStep({ id: 'pinch', title: 'Pinch', hint: CM ? 'Keep your palms down and touch the tip of your thumb to the tip of your index finger on each hand. This is how you will pick things up. Hold it.' : 'Keep your palms toward the screen and touch the tip of your thumb to the tip of your index finger on each hand. This is how you will pick things up. Hold it.', hold: 0.9, timeout: 25, show: D_('pinch'), showFor: 2.9,
-        ok: (i, S, m) => S.pinchD < opn(i) * (1 - drop(i)) && Math.abs(m.dp) < 0.8, sample: (i, S) => ({ pd: S.pinchD, lnk: S.rlnk }), warn: framing,
+      const b2 = skipAll ? null : await runStep({ id: 'pinch', title: 'Pinch', hint: CM ? 'Keep your palms down and touch the tip of your thumb to the tip of your index finger on each hand. This is how you will pick things up. Hold it.' : 'Keep your palms toward the screen and touch the tip of your thumb to the tip of your index finger on each hand. This is how you will pick things up. Hold it.', hold: 0.6, timeout: 25, tip: 'Bring the tip of your thumb right up to the tip of your index finger.', show: D_('pinch'), showFor: 2.9,
+        ok: (i, S, m) => S.pinchD < opn(i) * (1 - drop(i)) && Math.abs(m.dp) < 1.5, sample: (i, S) => ({ pd: S.pinchD, lnk: S.rlnk }), warn: framing,
         meter: () => st.map((S, i) => ({ value: clamp(1 - S.pinchD / opn(i), 0, 1), mark: drop(i) })) });
       b2?.forEach((a, i) => { if (!a) return; res.closed[i] = median(a.map(x => x.pd)); res.closedHi[i] = pct(a.map(x => x.pd), 0.9); res.lnkPinch[i] = median(a.map(x => x.lnk)); });
       // grab: a whole-hand fist, the other way to hold things
       const cop = i => res.curlOpen[i] ?? res.curlOpen[1 - i] ?? 1.15;
-      const bg = skipAll ? null : await runStep({ id: 'grab', title: 'Grab', hint: CM ? 'Open your hands, then close each one into a loose fist, the way you would grab a jar. You can pick things up this way too. Hold it.' : 'Open your hands, then close each one into a loose fist, palms still toward the screen, the way you would grab a jar. You can pick things up this way too. Hold it.', hold: 0.8, timeout: 25, show: D_('grab'), showFor: 2.9,
-        ok: (i, S, m) => S.curl < 0.7 * cop(i) && Math.abs(m.dc) < 0.8, sample: (i, S) => S.curl, warn: framing,
-        meter: () => st.map((S, i) => ({ value: clamp(1 - S.curl / cop(i), 0, 1), mark: 0.3 })) });
+      const bg = skipAll ? null : await runStep({ id: 'grab', title: 'Grab', hint: CM ? 'Open your hands, then close each one into a loose fist, the way you would grab a jar. You can pick things up this way too. Hold it.' : 'Open your hands, then close each one into a loose fist, palms still toward the screen, the way you would grab a jar. You can pick things up this way too. Hold it.', hold: 0.6, timeout: 25, tip: 'Curl all your fingers in, as if around a jar.', show: D_('grab'), showFor: 2.9,
+        ok: (i, S, m) => S.curl < 0.8 * cop(i) && Math.abs(m.dc) < 1.5, sample: (i, S) => S.curl, warn: framing,
+        meter: () => st.map((S, i) => ({ value: clamp(1 - S.curl / cop(i), 0, 1), mark: 0.2 })) });
       bg?.forEach((a, i) => { if (!a) return; res.curlFist[i] = median(a); res.curlFistHi[i] = pct(a, 0.9); });
       if (CM) {
         // 3 reach forward and 4 raise: how the camera sees "farther along the counter" and "up"
         const rest = i => res.rest[i] ?? res.rest[1 - i] ?? this.cal.counter.rest[i];
-        const still = m => m.sp < 0.15 && Math.abs(m.dl) < 0.12;
-        const b3 = skipAll ? null : await runStep({ id: 'far', title: 'Reach forward', hint: 'Open your hands. Keeping them at the same height, reach toward the screen as far as is comfortable, as if to the back of the counter. Hold them there.', hold: 0.8, timeout: 25, show: 'c_far', showFor: 3.1,
-          ok: (i, S, m) => S.lnk - rest(i).lnk > 0.1 && still(m), sample: (i, S) => [S.rv, S.rlnk], warn: framing,
-          meter: () => st.map((S, i) => ({ value: clamp((S.lnk - rest(i).lnk) / 0.4, 0, 1), mark: 0.25 })) });
+        const still = m => m.sp < 0.3 && Math.abs(m.dl) < 0.25;
+        const b3 = skipAll ? null : await runStep({ id: 'far', title: 'Reach forward', hint: 'Open your hands. Keeping them at the same height, reach toward the screen as far as is comfortable, as if to the back of the counter. Hold them there.', hold: 0.6, timeout: 25, tip: 'Reach a little farther toward the screen, and pause there.', show: 'c_far', showFor: 3.1,
+          ok: (i, S, m) => S.lnk - rest(i).lnk > 0.06 && still(m), sample: (i, S) => [S.rv, S.rlnk], warn: framing,
+          meter: () => st.map((S, i) => ({ value: clamp((S.lnk - rest(i).lnk) / 0.4, 0, 1), mark: 0.15 })) });
         b3?.forEach((a, i) => { if (a) res.far[i] = [median(a.map(x => x[0])), median(a.map(x => x[1]))]; });
-        const b4 = skipAll ? null : await runStep({ id: 'up', title: 'Raise', hint: 'Bring your hands back toward you, then raise them, as if reaching for a high shelf. Hold them there.', hold: 0.8, timeout: 25, show: 'c_up', showFor: 3.1,
-          ok: (i, S, m) => rest(i).v - S.v > 0.08 && S.lnk - rest(i).lnk < 0.12 && still(m), sample: (i, S) => [S.rv, S.rlnk], warn: framing,
-          meter: () => st.map((S, i) => ({ value: clamp((rest(i).v - S.v) / 0.32, 0, 1), mark: 0.25 })) });
+        const b4 = skipAll ? null : await runStep({ id: 'up', title: 'Raise', hint: 'Bring your hands back toward you, then raise them, as if reaching for a high shelf. Hold them there.', hold: 0.6, timeout: 25, tip: 'Raise your hands a little higher in the picture, and pause there.', show: 'c_up', showFor: 3.1,
+          ok: (i, S, m) => rest(i).v - S.v > 0.05 && S.lnk - rest(i).lnk < 0.15 && still(m), sample: (i, S) => [S.rv, S.rlnk], warn: framing,
+          meter: () => st.map((S, i) => ({ value: clamp((rest(i).v - S.v) / 0.32, 0, 1), mark: 0.16 })) });
         b4?.forEach((a, i) => { if (a) res.up[i] = [median(a.map(x => x[0])), median(a.map(x => x[1]))]; });
       } else {
         // 3 push (while still pinching, as when pressing something down)
         const base = st.map((S, i) => res.lnkPinch[i] ?? res.lnk0[i] ?? S.lnk);
-        const b3 = skipAll ? null : await runStep({ id: 'push', title: 'Push', hint: 'Pinch again and move your hands toward the screen, as far as is comfortable. This is how you will press things down. Hold it there.', hold: 0.8, timeout: 25, showFor: 3.1,
-          ok: (i, S, m) => S.lnk - base[i] > 0.05 && Math.abs(m.dl) < 0.12, sample: (i, S) => S.rlnk,
+        const b3 = skipAll ? null : await runStep({ id: 'push', title: 'Push', hint: 'Pinch again and move your hands toward the screen, as far as is comfortable. This is how you will press things down. Hold it there.', hold: 0.6, timeout: 25, tip: 'Move your pinched hands a little closer to the screen, and pause there.', showFor: 3.1,
+          ok: (i, S, m) => S.lnk - base[i] > 0.05 && Math.abs(m.dl) < 0.25, sample: (i, S) => S.rlnk,
           meter: () => st.map((S, i) => ({ value: clamp((S.lnk - base[i]) / 0.4, 0, 1), mark: 0.05 / 0.4 })) });
         b3?.forEach((a, i) => { if (a) res.push[i] = median(a) - base[i]; });
       }
@@ -295,7 +305,7 @@ export class WebcamHands {
       if (!skipAll) res.box = await (async () => {
         Object.assign(view, { step: view.step + 1, id: 'range', title: CM ? 'Sweep' : 'Reach', hint: CM ? 'Lower your open hands to counter height again and slide them slowly left and right, as far as you can comfortably reach. The box shows what you have covered; it finishes when it stops growing.' : 'Open your hands and pull back. Now sweep them slowly around the whole area you can reach comfortably: far left, far right, up high, down low. The box shows what you have covered; it finishes when the box stops growing.', warn: '', prog: [0, 0], skip: false, done: false, meter: null, box: null, trail: [] });
         await demo(D_('range'), 4.4);
-        const us = [], vs = [], cs = []; let t0 = null, grew = ms(), bx = null, ref = null;
+        const us = [], vs = [], cs = []; let t0 = null, grew = ms(), bx = null, ref = null, bx0 = null;
         // counter: sideways reach, as image offset times distance (relative to the rest pose)
         const rs = res.rest.filter(Boolean), uMid = rs.length === 2 ? (rs[0].u + rs[1].u) / 2 : 0.5, lnkMid = rs.length ? rs.reduce((a, r) => a + r.lnk, 0) / rs.length : this.cal.counter?.lnkMid ?? 0;
         const big = b => !!b && b.u1 - b.u0 >= (CM ? 0.22 : MIN_BOX.w) && (CM || b.v1 - b.v0 >= MIN_BOX.h);
@@ -308,12 +318,13 @@ export class WebcamHands {
           if (fresh && us.length >= 16) {
             const b = { u0: pct(us, 0.015), u1: pct(us, 0.985), v0: pct(vs, 0.015), v1: pct(vs, 0.985) };
             if (!ref || b.u0 < ref.u0 - 0.012 || b.u1 > ref.u1 + 0.012 || b.v0 < ref.v0 - 0.012 || b.v1 > ref.v1 + 0.012) { grew = ms(); ref = b; }     /* still expanding */
-            bx = view.box = b;
+            bx = view.box = b; if (!bx0 && us.length >= 20) bx0 = { ...b };     /* where the hands started: the sweep has to go well beyond it */
           }
           const el = t0 === null ? 0 : (ms() - t0) / 1000;
           view.prog = view.need.map(n => (n ? clamp(Math.min(el / T(6), big(bx) ? 1 : 0.6), 0, 1) : 0));
           view.warn = el > 7 && !big(bx) ? 'Reach farther out: the box should cover the space you want to use.' : '';
-          if (el > T(6) && us.length >= 40 && big(bx) && ms() - grew > T(2.5) * 1000) break;
+          const swept = bx0 && (bx.u1 - bx.u0 - (bx0.u1 - bx0.u0) > 0.12 || (!CM && bx.v1 - bx.v0 - (bx0.v1 - bx0.v0) > 0.12));
+          if (el > T(6) && swept && big(bx) && ms() - grew > T(2.5) * 1000) break;      /* only after a real sweep; a pause at a corner must not end it */
           if (el > 20 || (t0 === null && ms() - grew > 25000)) break;
         }
         if (!big(bx)) return (steps.range = 'timeout', null);
@@ -362,7 +373,7 @@ export class WebcamHands {
       }
       // grab: the same idea on the curl scale, between this hand's own fist and open hand
       const go = res.curlOpen[i], gc = res.curlFist[i], gr = go !== null && gc !== null ? go - gc : 0;
-      if (gr >= 0.25) {
+      if (gr >= 0.18) {
         const on = clamp(Math.max(0.25 * gr, (res.curlFistHi[i] ?? gc) - gc + 0.03), 0.25 * gr, 0.4 * gr), off = Math.min(0.75 * gr, Math.max(0.5 * gr, on + 0.08));
         cal.gOn[i] = gc + on; cal.gOff[i] = gc + off; cal.fallback.grab[i] = false; fresh.grab[i] = true;
       }
@@ -382,7 +393,7 @@ export class WebcamHands {
         const r = res.rest[i], f = res.far[i], u = res.up[i];
         if (r && f && u) {
           const F = [f[0] - r.v, f[1] - r.lnk], U = [u[0] - r.v, u[1] - r.lnk], det = F[0] * U[1] - F[1] * U[0], nn = Math.hypot(...F) * Math.hypot(...U);
-          if (nn > 0 && Math.abs(det) / nn > 0.34 && F[1] > 0.05 && U[0] < -0.04) { C.aF[i] = F; C.aU[i] = U; fb.axes[i] = false; freshA[i] = true; }     /* the two directions must be distinct (> 20°) */
+          if (nn > 0 && Math.abs(det) / nn > 0.34 && F[1] > 0.035 && U[0] < -0.03) { C.aF[i] = F; C.aU[i] = U; fb.axes[i] = false; freshA[i] = true; }     /* the two directions must be distinct (> 20°) */
         }
       }
       for (const i of [0, 1]) {

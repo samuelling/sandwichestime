@@ -32,6 +32,7 @@ async def synthetic(a):
         await pg.wait_for_function('window.__sandwich && window.__sandwich.webcamHands', timeout=120000)
         r = json.loads(await pg.evaluate(js)); await b.close()
     for k, v in r['out'].items(): print('  ok ' if v['ok'] else '  XX ', k, v.get('info', ''))
+    if r.get('trace'): print('trace', json.dumps(r['trace']))
     if r['errors']: print(r['errors'])
     print('PASS' if r['pass'] and not r['errors'] else 'FAIL'); return r['pass'] and not r['errors']
 
@@ -41,7 +42,7 @@ async def calibration(a):
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path=a.chrome, args=GL)
         ctx = await b.new_context(viewport={'width': 800, 'height': 480})      # one context: localStorage carries from 'full' to 'quick'
-        for phase, who in [('full', 'cal_a'), ('quick', 'cal_a'), ('onehand', 'cal_b'), ('skip', 'cal_c')]:
+        for phase, who in ([(a.phase, 'cal_x')] if getattr(a, 'phase', None) else [('full', 'cal_a'), ('quick', 'cal_a'), ('onehand', 'cal_b'), ('wobbly', 'cal_d'), ('skip', 'cal_c')]):
             pg = await ctx.new_page()
             await pg.goto(f"{a.base}?auto=1&input=webcam&fakecam=1&calib=auto&calibspeed=2&webcammap=upright&participant={who}&gaze=none&quality=0&saliency=0&seed={a.seed}&pr=0.5&fast=1")
             await pg.wait_for_function('window.__sandwich && window.__sandwich.webcamHands', timeout=120000)
@@ -63,10 +64,15 @@ async def counter(a):
         pg = await b.new_page(viewport={'width': 800, 'height': 480})
         await pg.goto(f"{a.base}?auto=1&input=webcam&webcammap=counter&fakecam=1&calib=full&calibspeed=2&participant=counter_test&gaze=none&quality=0&saliency=0&seed={a.seed}&pr=0.5&fast=1")
         await pg.wait_for_function('window.__sandwich && window.__sandwich.webcamHands', timeout=120000)
-        r = json.loads(await pg.evaluate(js))
+        task = asyncio.ensure_future(pg.evaluate(js))
+        try: r = json.loads(await asyncio.wait_for(task, 330))
+        except asyncio.TimeoutError:      # stuck: say where
+            st = await pg.evaluate('''JSON.stringify({ out: window.__cout, cal: window.__sandwich.webcamHands.calView && { id: window.__sandwich.webcamHands.calView.id, phase: window.__sandwich.webcamHands.calView.phase, prog: window.__sandwich.webcamHands.calView.prog, need: window.__sandwich.webcamHands.calView.need }, calibrating: window.__sandwich.webcamHands.calibrating, rec: window.__sandwich.logger && window.__sandwich.logger.recording, hands: window.__sandwich.hands.map(h => [h.side, h.tracked, h.pinch, h.holding && h.holding.id, h.hover && h.hover.id]), body: window.__sandwich.body.x })''')
+            print('TIMEOUT', st); await b.close(); return False
         if a.shot: await pg.screenshot(path=a.shot, timeout=120000)
         await b.close()
     for k, v in r['out'].items(): print('  ok ' if v['ok'] else '  XX ', k, v.get('info', ''))
+    if r.get('trace'): print('trace', json.dumps(r['trace']))
     if r['errors']: print(r['errors'])
     print('PASS' if r['pass'] and not r['errors'] else 'FAIL'); return r['pass'] and not r['errors']
 
@@ -192,7 +198,7 @@ async def touch(a):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'counter', 'calibration', 'camera', 'mouse', 'touch'])
     ap.add_argument('--base', default='http://localhost:8811/index.html'); ap.add_argument('--chrome', default=None); ap.add_argument('--seed', type=int, default=1)
-    ap.add_argument('--video'); ap.add_argument('--shot'); ap.add_argument('--wait', type=float, default=6); ap.add_argument('--tone', default='neutral')
+    ap.add_argument('--video'); ap.add_argument('--shot'); ap.add_argument('--phase', default=None); ap.add_argument('--wait', type=float, default=6); ap.add_argument('--tone', default='neutral')
     a = ap.parse_args()
     sys.exit(0 if asyncio.run({'synthetic': synthetic, 'counter': counter, 'calibration': calibration, 'camera': camera, 'mouse': mouse, 'touch': touch}[a.which](a)) else 1)
 
