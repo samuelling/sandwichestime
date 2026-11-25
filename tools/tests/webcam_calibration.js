@@ -4,7 +4,7 @@
 //        'onehand' (only the right hand ever shows up), 'skip' (Skip calibration -> standard settings).
 (async () => {
   const PHASE = '__PHASE__';
-  const S = window.__sandwich, WH = S.webcamHands, { POSE } = await import('/src/interact/hand.js'), { WEBCAM_DEFAULTS: D } = await import('/src/interact/webcam.js');
+  const S = window.__sandwich, WH = S.webcamHands, { POSE, curlOf } = await import('/src/interact/hand.js'), { WEBCAM_DEFAULTS: D } = await import('/src/interact/webcam.js');
   const raf = () => new Promise(r => requestAnimationFrame(r)), ms = () => performance.now();
   const sleep = async t => { const t0 = ms(); while (ms() - t0 < t) await raf(); };
   const until = async (f, t = 60000) => { const t0 = ms(); while (!f()) { if (ms() - t0 > t) return false; await raf(); } return true; };
@@ -14,11 +14,11 @@
   let seed = 12345; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296, gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(6.2832 * rnd());
   const NOISE = 0.0015, K0 = 1.5, PUSH = Math.log(1.3);
   // hands given directly in the camera picture as displayed: (u, v) palm centre, k = image scale, pinch 0..1
-  const state = { L: { u: 0.36, v: 0.55, k: K0, pinch: 0, on: PHASE !== 'onehand' }, R: { u: 0.64, v: 0.55, k: K0, pinch: 0, on: true } };
-  const shape = (side, pinch) => POSE.OPEN.map((a, i) => { const b = POSE.PINCH[i], m = side === 'R' ? -1 : 1; return { x: -(a[0] + (b[0] - a[0]) * pinch) * m, y: -(a[1] + (b[1] - a[1]) * pinch), z: a[2] + (b[2] - a[2]) * pinch }; });
+  const state = { L: { u: 0.36, v: 0.55, k: K0, pinch: 0, fist: 0, on: PHASE !== 'onehand' }, R: { u: 0.64, v: 0.55, k: K0, pinch: 0, fist: 0, on: true } };
+  const shape = (side, pinch, fist = 0) => POSE.OPEN.map((a, i) => { const b = POSE.PINCH[i], f = POSE.FIST[i], m = side === 'R' ? -1 : 1, q = [0, 1, 2].map(j => a[j] + (b[j] - a[j]) * pinch + (f[j] - a[j] - (b[j] - a[j]) * pinch) * fist); return { x: -q[0] * m, y: -q[1], z: q[2] }; });
   const gap = wl => Math.hypot(wl[4].x - wl[8].x, wl[4].y - wl[8].y, wl[4].z - wl[8].z) / Math.hypot(wl[9].x - wl[0].x, wl[9].y - wl[0].y, wl[9].z - wl[0].z);
   function synth(side, st) {
-    const wl = shape(side, st.pinch), nx = NOISE * gauss(), ny = NOISE * gauss();
+    const wl = shape(side, st.pinch, st.fist), nx = NOISE * gauss(), ny = NOISE * gauss();
     const pc = [0, 5, 17].reduce((p, i) => ({ x: p.x + wl[i].x / 3, y: p.y + wl[i].y / 3 }), { x: 0, y: 0 });
     const lm = wl.map(p => ({ x: 1 - st.u + nx + st.k * (p.x - pc.x) / aspect, y: st.v + ny + st.k * (p.y - pc.y), z: 0 }));
     return { lm, wl, label: side === 'R' ? 'Left' : 'Right' };       /* MediaPipe labels as if the image were mirrored */
@@ -57,7 +57,9 @@
     check('1 open: screen is up, hands parked', await step('open') && !document.querySelector('#handcal').hidden && WH.calibrating && parked());
     seen.open = await step('pinch'); both(s => (s.pinch = PINCH)); await sleep(150);
     check('2 pinch reached; pinching grabs nothing while calibrating', seen.open && parked());
-    seen.pinch = await step('push'); both(s => (s.k = K0 * Math.exp(PUSH)));
+    seen.pinch = await step('grab'); both(s => { s.pinch = 0; s.fist = 1; });
+    check('2b grab reached; a fist grabs nothing while calibrating', seen.pinch && (await sleep(200), parked()));
+    seen.grab = await step('push'); both(s => { s.fist = 0; s.pinch = PINCH; s.k = K0 * Math.exp(PUSH); });
     check('3 push reached', seen.pinch, WH.calView?.id);
     seen.push = await step('range'); both(s => { s.pinch = 0; s.k = K0; }); await until(() => WH.calView?.phase === 'do', 20000);     /* watch the demo, then sweep */
     check('4 reach reached', seen.push, WH.calView?.id);
@@ -76,12 +78,14 @@
     both(s => (s.v = 0.55)); state.L.u = 0.36; state.R.u = 0.64;
     await until(() => !WH.calibrating, 20000);
     rec = false;
-    check('every pose is demonstrated first, then "your turn"', WH.demosShown.join() === 'open,pinch,push,range' && ['pinch', 'push', 'range'].every(id => phases[id]?.seq.join('>').startsWith('demo>go>do')), [WH.demosShown.join(), Object.fromEntries(Object.entries(phases).map(([k, v]) => [k, v.seq.join('>')]))]);
+    check('every pose is demonstrated first, then "your turn"', WH.demosShown.join() === 'open,pinch,grab,push,range' && ['pinch', 'grab', 'push', 'range'].every(id => phases[id]?.seq.join('>').startsWith('demo>go>do')), [WH.demosShown.join(), Object.fromEntries(Object.entries(phases).map(([k, v]) => [k, v.seq.join('>')]))]);
     check('nothing is measured while the demo plays', Object.values(phases).every(p => p.progInDemo === 0));
     const cal = WH.cal, me = cal.measured || {}, fb = cal.fallback || {}, dur = (ms() - t0) / 1000;
     const hs = PHASE === 'onehand' ? [1] : [0, 1];
     check('finished, screen closed', !WH.calibrating && document.querySelector('#handcal').hidden && cal.source === 'calibrated', [cal.source, dur.toFixed(1) + ' s']);
-    check('every pose was measured', fb.pinch && !fb.pinch[1] && !fb.push[1] && !fb.range && (PHASE === 'onehand' || (!fb.pinch[0] && !fb.push[0])), fb);
+    check('every pose was measured', fb.pinch && !fb.pinch[1] && !fb.grab[1] && !fb.push[1] && !fb.range && (PHASE === 'onehand' || (!fb.pinch[0] && !fb.grab[0] && !fb.push[0])), fb);
+    const cFist = curlOf(shape('R', 0, 1)), cOpen = curlOf(shape('R', 0, 0)), cLoose = curlOf(shape('R', PINCH, 0));
+    check('grab threshold sits between this hand\'s fist and open hand, clear of a pinch', [0, 1].every(i => cal.gOn[i] > cFist + 0.05 && cal.gOn[i] < cal.gOff[i] - 0.05 && cal.gOff[i] < cOpen - 0.2) && cal.gOn[1] < cLoose - 0.05, [cal.gOn.map(r3), cal.gOff.map(r3), r3(cFist), r3(cLoose), r3(cOpen)]);
     check('open and closed gaps match the hand shown', hs.every(i => Math.abs(me.open[i] - gOpen) < 0.02 && Math.abs(me.closed[i] - gPinch) < 0.02), [me.open.map(r3), me.closed.map(r3), r3(gOpen), r3(gPinch)]);
     check('pinch threshold sits between this hand\'s closed and open gap', [0, 1].every(i => cal.pOn[i] > gPinch + 0.03 && cal.pOn[i] < cal.pOff[i] - 0.05 && cal.pOff[i] < gOpen - 0.1), [cal.pOn.map(r3), cal.pOff.map(r3)]);
     check('this loose pinch is one the standard threshold would miss', gPinch > D.pOn[1] && gPinch < cal.pOn[1], [r3(gPinch), D.pOn[1]]);
@@ -114,6 +118,13 @@
       check('stays down when easing off a little, lifts when pulled clear', c[0] && !d[0], [c, d]);
       await ramp('pinch', 0);
       check('opening the hand lets go', !R.holding);
+      const before = S.logger.events.filter(e => e.type === 'grasp').length;
+      await ramp('fist', 1);
+      await wait(400);
+      const g = S.logger.events.filter(e => e.type === 'grip').slice(-1)[0], p0 = S.logger.events.filter(e => e.type === 'grip').slice(-2)[0];
+      check('a fist grabs it too, logged as a grab (the earlier pinch as a pinch)', R.holding?.id === 'bread_clip' && g?.how === 'grab' && p0?.how === 'pinch', [R.holding?.id, p0?.how, g?.how, g?.curl]);
+      await ramp('fist', 0);
+      check('opening the fist lets go', !R.holding);
     }
   }
   run = false;

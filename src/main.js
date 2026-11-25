@@ -109,7 +109,7 @@ async function start(cfg) {
   const body = new Body(); body.applyToCamera(camera);
 
   const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.5.0' };
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.5.1' };
   const logger = new Logger(meta);
   logger.layout = { placements: L.placements, counterY: 0.91 };
   logger.task = taskDef;

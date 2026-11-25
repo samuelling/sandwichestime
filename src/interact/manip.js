@@ -98,7 +98,7 @@ export class Manipulator {
     let ent = hand.pickHint && hand.pickHint.grabbable !== false ? hand.pickHint : this.nearest(hand);
     if (hand.pickHint && hand.pickHint.root.getWorldPosition(_v).distanceTo(hand.grip) > 0.35) ent = this.nearest(hand);
     ent = this.resolve(ent, hand.pickHint ? hand : null);
-    const base = { hand: hand.side, t: this.t, pos: hand.grip.toArray() };
+    const base = { hand: hand.side, t: this.t, pos: hand.grip.toArray(), ...(hand.gesture ? { how: hand.gesture } : {}) };     /* webcam: 'pinch' or 'grab' */
     if (!ent || (ent.heldBy && ent.heldBy !== hand)) { this.emit('grasp_miss', { ...base, near: hand.pickHint?.id || null }); return; }
     const info = { ...base, obj: ent.id, kind: ent.kind, role: ent.role, from: ent.restingOn };
 

@@ -18,7 +18,21 @@ const PINCH = [[0, 0, 0], [0.022, 0.028, -0.012], [0.038, 0.05, -0.026], [0.042,
   [0.006, 0.095, -0.004], [0.007, 0.12, -0.034], [0.008, 0.104, -0.054], [0.008, 0.086, -0.052],
   [-0.013, 0.09, -0.004], [-0.014, 0.112, -0.034], [-0.014, 0.097, -0.05], [-0.014, 0.082, -0.046],
   [-0.029, 0.08, -0.004], [-0.032, 0.098, -0.028], [-0.032, 0.088, -0.042], [-0.031, 0.076, -0.04]];
-export const POSE = { OPEN, PINCH };
+// A loose fist: each finger curls toward the palm (-z) from its knuckle; the thumb lies across the front of the fingers.
+const FIST = OPEN.map(p => p.slice());
+for (const [m, k] of [[5, 1], [9, 1.05], [13, 1], [17, 0.85]]) {
+  const [x, y] = OPEN[m];
+  FIST[m + 1] = [x, y + 0.006 * k, -0.0345 * k]; FIST[m + 2] = [x, y - 0.0157 * k, -0.0383 * k]; FIST[m + 3] = [x, y - 0.022 * k, -0.021 * k];
+}
+Object.assign(FIST, { 1: [0.022, 0.028, -0.012], 2: [0.032, 0.05, -0.03], 3: [0.022, 0.068, -0.042], 4: [0.006, 0.075, -0.045] });
+export const POSE = { OPEN, PINCH, FIST };
+// How closed the hand is: mean distance of the four fingertips from the palm centre, in palm lengths (3D, so it does
+// not depend on the view). About 1.2 open, 0.4 in a fist. pts: 21 points with x, y, z.
+export function curlOf(pts) {
+  const c = [0, 5, 17].reduce((a, i) => [a[0] + pts[i].x / 3, a[1] + pts[i].y / 3, a[2] + pts[i].z / 3], [0, 0, 0]);
+  const size = Math.hypot(pts[9].x - pts[0].x, pts[9].y - pts[0].y, pts[9].z - pts[0].z) || 1;
+  return [8, 12, 16, 20].reduce((a, i) => a + Math.hypot(pts[i].x - c[0], pts[i].y - c[1], pts[i].z - c[2]), 0) / 4 / size;
+}
 export const GRIP_LOCAL = new THREE.Vector3(0.0375, 0.0985, -0.044); // between thumb tip & index tip in pinch pose
 
 const _v = new THREE.Vector3(), _m = new THREE.Matrix4();

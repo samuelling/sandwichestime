@@ -28,15 +28,16 @@
 // tilted without knowing its lens. The hand's own pitch is levelled the same way.
 import * as THREE from 'three';
 import { OneEuro, OneEuro3, clamp } from '../util/util.js';
-import { BONES } from './hand.js';
+import { BONES, curlOf } from './hand.js';
 import { K } from '../scene/kitchen.js';
 
 const HOLD_LOST = 0.6;          // s a hand may vanish before it is treated as gone (held objects are kept until then)
-const CARRY = 0.07, LIFT_MAX = 0.4, PRESS_OFF = 0.02, SETTLE = 0.35;
+const CARRY = 0.07, LIFT_MAX = 0.4, PRESS_OFF = 0.02, SETTLE = 0.35, GRIP_SETTLE = 0.3;
 // Standard settings, used until (or instead of) a calibration. `box` is the part of the camera image that maps onto the
 // full screen; pOn / pOff are the pinch and release thresholds (thumb-index distance in palm lengths), per hand;
+// gOn / gOff the same for a whole-hand grab (fingertip curl toward the palm, see curlOf; ~1.2 open, ~0.4 fist);
 // liftGain converts a change in log image size into height; cutoff is the smoothing of the pointer at rest (Hz).
-export const WEBCAM_DEFAULTS = { box: { u0: 0.12, u1: 0.88, v0: 0.14, v1: 0.9 }, pOn: [0.3, 0.3], pOff: [0.5, 0.5], liftGain: [0.47, 0.47], cutoff: 1.2 };
+export const WEBCAM_DEFAULTS = { box: { u0: 0.12, u1: 0.88, v0: 0.14, v1: 0.9 }, pOn: [0.3, 0.3], pOff: [0.5, 0.5], gOn: [0.5, 0.5], gOff: [0.7, 0.7], liftGain: [0.47, 0.47], cutoff: 1.2 };
 const CAL_KEY = 'sandwichestime.webcamCal.v1';
 // counter mapping: where the calibrated poses land in the kitchen (metres; z is negative away from the body)
 const C_ZNEAR = K.counterFront - 0.1, C_ZFAR = K.counterBack + 0.12, C_YREST = K.counterY + 0.12, C_UP = 0.55, C_HALFW = 0.62;
@@ -64,7 +65,7 @@ export class WebcamHands {
       fu: new OneEuro(1.2, 10), fv: new OneEuro(1.2, 10), fk: new OneEuro(0.8, 3),
       pts: Array.from({ length: 21 }, () => new OneEuro3(2.0, 20)),
       T: new THREE.Vector3(body.x + (i ? 0.22 : -0.22), 1.02, 0.18), smooth: new THREE.Vector3(body.x + (i ? 0.22 : -0.22), 1.02, 0.18),
-      ndc: new THREE.Vector2(i ? 0.3 : -0.3, -0.3), lost: Infinity, lnk: 0, lnkRef: 0, lnk0: null, lift: CARRY, pinchN: 0, pinchD: 1, img: null, u: 0.5, v: 0.5, ru: 0.5, rv: 0.5, edge: 0, seen: false, pressed: false, holdT: 0, P: new THREE.Vector3(body.x + (i ? 0.22 : -0.22), C_YREST, C_ZNEAR), cg: 0, wl: null,
+      ndc: new THREE.Vector2(i ? 0.3 : -0.3, -0.3), lost: Infinity, lnk: 0, lnkRef: 0, lnk0: null, lift: CARRY, pinchN: 0, pinchD: 1, grabN: 0, curl: 1.2, pin: false, grb: false, img: null, u: 0.5, v: 0.5, ru: 0.5, rv: 0.5, edge: 0, seen: false, pressed: false, holdT: 0, P: new THREE.Vector3(body.x + (i ? 0.22 : -0.22), C_YREST, C_ZNEAR), cg: 0, wl: null,
     }));
     for (const h of hands) h.twistGain = 2.5;      // ~180° of real rotation opens a lid instead of ~450°
     this.rate = 0; this._n = 0; this._t = 0; this._frameT = -1; this.space = false; this.frames = 0;
@@ -98,7 +99,10 @@ export class WebcamHands {
   }
   // how far the fingers point up from level (counter mapping, before levelling)
   pitchOf(wl) { return Math.atan2(-(wl[9].y - wl[0].y), -(wl[9].z - wl[0].z)); }
-  applyCal(cal) { this.cal = cal; for (const S of this.st) S.fu.minCutoff = S.fv.minCutoff = cal.cutoff; }
+  applyCal(cal) {
+    if (!cal.gOn || !cal.gOff) { cal.gOn = [...WEBCAM_DEFAULTS.gOn]; cal.gOff = [...WEBCAM_DEFAULTS.gOff]; if (cal.fallback) cal.fallback.grab = [true, true]; }
+    this.cal = cal; for (const S of this.st) S.fu.minCutoff = S.fv.minCutoff = cal.cutoff;
+  }
   savedCal() { try { const c = JSON.parse(localStorage.getItem(this.calKey) || 'null'); return validCal(c, this.mapping) ? c : null; } catch { return null; } }
   saveCal(cal) { try { localStorage.setItem(this.calKey, JSON.stringify(cal)); return true; } catch { return false; } }
   forgetCal() { try { localStorage.removeItem(this.calKey); } catch { /* storage unavailable */ } }
@@ -121,7 +125,7 @@ export class WebcamHands {
       }
       const size = Math.hypot(wl[9].x - wl[0].x, wl[9].y - wl[0].y, wl[9].z - wl[0].z) || 0.09;
       const pinchD = Math.hypot(wl[4].x - wl[8].x, wl[4].y - wl[8].y, wl[4].z - wl[8].z) / size;
-      out.push({ label, lm, wl, u: this.mirrored ? cx : 1 - cx, v: cy, lnk: Math.log(Math.max(1e-6, num / Math.max(den, 1e-9))), pinchD });
+      out.push({ label, lm, wl, u: this.mirrored ? cx : 1 - cx, v: cy, lnk: Math.log(Math.max(1e-6, num / Math.max(den, 1e-9))), pinchD, curl: curlOf(wl) });
     });
     return out;
   }
@@ -162,15 +166,15 @@ export class WebcamHands {
     const st = this.st, D = WEBCAM_DEFAULTS, T = s => s / speed, saved = this.savedCal();
     let quick = mode === 'quick' && !!saved;
     this.bus.emit('calibration_start', { what: 'webcam_hands', mode: quick ? 'quick' : 'full' });
-    const CM = this.mapping === 'counter', NSTEP = CM ? 5 : 4, D_ = id => (CM ? 'c_' + id : id);
-    const res = { lnk0: [null, null], open: [null, null], closed: [null, null], closedHi: [null, null], lnkPinch: [null, null], push: [null, null], jitter: [null, null], box: null, rest: [null, null], pitch: [null, null], far: [null, null], up: [null, null], lat: null }, steps = {};
+    const CM = this.mapping === 'counter', NSTEP = CM ? 6 : 5, D_ = id => (CM ? 'c_' + id : id);
+    const res = { lnk0: [null, null], open: [null, null], closed: [null, null], closedHi: [null, null], lnkPinch: [null, null], push: [null, null], jitter: [null, null], box: null, rest: [null, null], pitch: [null, null], far: [null, null], up: [null, null], lat: null, curlOpen: [null, null], curlFist: [null, null], curlFistHi: [null, null] }, steps = {};
     const view = this.calView = { step: 0, n: quick ? 1 : NSTEP, id: '', title: '', hint: '', warn: '', prog: [0, 0], need: [true, true], box: null, trail: [], done: false, quick, skip: false, redo: false, meter: null, phase: 'do', demoId: '', demoT0: 0, demoLen: 1, skipDemo: false, speed };
     let skipAll = false;
     ui?.show(view, { skip: () => (view.skip = true), skipAll: () => (skipAll = true), redo: () => { view.redo = true; view.skip = true; }, skipDemo: () => (view.skipDemo = true) });
     const frame = () => new Promise(r => requestAnimationFrame(r)), ms = () => performance.now();
     const pause = async s => { const t0 = ms(); while (ms() - t0 < s * 1000 && !skipAll) await frame(); };
     // per-hand motion (rates on tracker frames, lightly smoothed) and time out of sight
-    const mo = st.map(() => ({ u: null, v: 0, lnk: 0, pd: 0, t: 0, sp: 0, dl: 0, dp: 0, unseen: 0 }));
+    const mo = st.map(() => ({ u: null, v: 0, lnk: 0, pd: 0, t: 0, sp: 0, dl: 0, dp: 0, cu: 0, dc: 0, unseen: 0 }));
     let lastFrames = this.frames, lastT = ms();
     const tick = () => {
       const now = ms(), dt = Math.min(0.1, (now - lastT) / 1000), fresh = this.frames !== lastFrames; lastT = now; lastFrames = this.frames;
@@ -180,9 +184,9 @@ export class WebcamHands {
         m.unseen = 0;
         if (!fresh) return;
         if (m.u !== null) { const d = Math.max(1e-3, (now - m.t) / 1000), a = 0.5;
-          m.pd += 0.5 * (S.pinchD - m.pd);
+          m.pd += 0.5 * (S.pinchD - m.pd); const cuPrev = m.cu; m.cu += 0.5 * (S.curl - m.cu); m.dc += a * ((m.cu - cuPrev) / d - m.dc);
           m.sp += a * (Math.hypot(S.u - m.u, S.v - m.v) / d - m.sp); m.dl += a * ((S.lnk - m.lnk) / d - m.dl); m.dp += a * ((m.pd - m.pdPrev) / d - m.dp);
-        } else { m.pd = S.pinchD; m.sp = 1; m.dl = 0; m.dp = 0; }
+        } else { m.pd = S.pinchD; m.cu = S.curl; m.sp = 1; m.dl = 0; m.dp = 0; m.dc = 0; }
         Object.assign(m, { u: S.u, v: S.v, lnk: S.lnk, t: now, pdPrev: m.pd });
       });
       return { dt, fresh };
@@ -234,9 +238,9 @@ export class WebcamHands {
       return st[0].seen !== st[1].seen ? 'Show both hands (or keep one up: it will carry on with one).' : '';
     };
     const openOk = (i, S, m) => m.sp < 0.15 && Math.exp(S.lnk) < 3.2 && Math.exp(S.lnk) > 0.7;      /* no test on the gap itself: whatever this person's relaxed hand reads as IS "open" */
-    const openStep = (id, title, hint, timeout, showFor) => runStep({ id, title, hint, hold: 1.2, timeout, show: D_('open'), showFor, ok: openOk, sample: (i, S) => ({ lnk: S.rlnk, pd: S.pinchD, u: S.ru, v: S.rv, pitch: CM && S.wl ? this.pitchOf(S.wl) : 0 }), warn: framing });
+    const openStep = (id, title, hint, timeout, showFor) => runStep({ id, title, hint, hold: 1.2, timeout, show: D_('open'), showFor, ok: openOk, sample: (i, S) => ({ lnk: S.rlnk, pd: S.pinchD, cu: S.curl, u: S.ru, v: S.rv, pitch: CM && S.wl ? this.pitchOf(S.wl) : 0 }), warn: framing });
     const takeOpen = b => b.forEach((a, i) => { if (!a) return; res.lnk0[i] = median(a.map(x => x.lnk)); res.open[i] = median(a.map(x => x.pd));
-      res.rest[i] = { v: median(a.map(x => x.v)), u: median(a.map(x => x.u)), lnk: res.lnk0[i] }; res.pitch[i] = median(a.map(x => x.pitch));
+      res.rest[i] = { v: median(a.map(x => x.v)), u: median(a.map(x => x.u)), lnk: res.lnk0[i] }; res.pitch[i] = median(a.map(x => x.pitch)); res.curlOpen[i] = median(a.map(x => x.cu));
       const ju = jitterOf(a.map(x => x.u)), jv = jitterOf(a.map(x => x.v)); res.jitter[i] = ju === null ? null : Math.hypot(ju, jv) / Math.SQRT2; });
 
     let cal = null;
@@ -261,6 +265,12 @@ export class WebcamHands {
         ok: (i, S, m) => S.pinchD < opn(i) * (1 - drop(i)) && Math.abs(m.dp) < 0.8, sample: (i, S) => ({ pd: S.pinchD, lnk: S.rlnk }), warn: framing,
         meter: () => st.map((S, i) => ({ value: clamp(1 - S.pinchD / opn(i), 0, 1), mark: drop(i) })) });
       b2?.forEach((a, i) => { if (!a) return; res.closed[i] = median(a.map(x => x.pd)); res.closedHi[i] = pct(a.map(x => x.pd), 0.9); res.lnkPinch[i] = median(a.map(x => x.lnk)); });
+      // grab: a whole-hand fist, the other way to hold things
+      const cop = i => res.curlOpen[i] ?? res.curlOpen[1 - i] ?? 1.15;
+      const bg = skipAll ? null : await runStep({ id: 'grab', title: 'Grab', hint: CM ? 'Open your hands, then close each one into a loose fist, the way you would grab a jar. You can pick things up this way too. Hold it.' : 'Open your hands, then close each one into a loose fist, palms still toward the screen, the way you would grab a jar. You can pick things up this way too. Hold it.', hold: 0.8, timeout: 25, show: D_('grab'), showFor: 2.9,
+        ok: (i, S, m) => S.curl < 0.7 * cop(i) && Math.abs(m.dc) < 0.8, sample: (i, S) => S.curl, warn: framing,
+        meter: () => st.map((S, i) => ({ value: clamp(1 - S.curl / cop(i), 0, 1), mark: 0.3 })) });
+      bg?.forEach((a, i) => { if (!a) return; res.curlFist[i] = median(a); res.curlFistHi[i] = pct(a, 0.9); });
       if (CM) {
         // 3 reach forward and 4 raise: how the camera sees "farther along the counter" and "up"
         const rest = i => res.rest[i] ?? res.rest[1 - i] ?? this.cal.counter.rest[i];
@@ -276,7 +286,7 @@ export class WebcamHands {
       } else {
         // 3 push (while still pinching, as when pressing something down)
         const base = st.map((S, i) => res.lnkPinch[i] ?? res.lnk0[i] ?? S.lnk);
-        const b3 = skipAll ? null : await runStep({ id: 'push', title: 'Push', hint: 'Keep pinching and move your hands toward the screen, as far as is comfortable. This is how you will press things down. Hold it there.', hold: 0.8, timeout: 25, showFor: 3.1,
+        const b3 = skipAll ? null : await runStep({ id: 'push', title: 'Push', hint: 'Pinch again and move your hands toward the screen, as far as is comfortable. This is how you will press things down. Hold it there.', hold: 0.8, timeout: 25, showFor: 3.1,
           ok: (i, S, m) => S.lnk - base[i] > 0.05 && Math.abs(m.dl) < 0.12, sample: (i, S) => S.rlnk,
           meter: () => st.map((S, i) => ({ value: clamp((S.lnk - base[i]) / 0.4, 0, 1), mark: 0.05 / 0.4 })) });
         b3?.forEach((a, i) => { if (a) res.push[i] = median(a) - base[i]; });
@@ -312,7 +322,7 @@ export class WebcamHands {
         const mu = 0.02 * (bx.u1 - bx.u0), mv = 0.02 * (bx.v1 - bx.v0);     /* a little inside the extremes, so the screen edges are reached without straining */
         return { u0: clamp(bx.u0 + mu, 0.02, 0.98), u1: clamp(bx.u1 - mu, 0.02, 0.98), v0: clamp(bx.v0 + mv, 0.02, 0.98), v1: clamp(bx.v1 - mv, 0.02, 0.98) };
       })();
-      for (const id of CM ? ['open', 'pinch', 'far', 'up', 'range'] : ['open', 'pinch', 'push', 'range']) steps[id] ??= 'skipped';
+      for (const id of CM ? ['open', 'pinch', 'grab', 'far', 'up', 'range'] : ['open', 'pinch', 'grab', 'push', 'range']) steps[id] ??= 'skipped';
       cal = this.deriveCal(res);
     }
     st.forEach((S, i) => { S.lnk0 = res.lnk0[i] ?? res.lnk0[1 - i] ?? S.lnk0; S.lnkRef = S.lnk; });
@@ -320,15 +330,15 @@ export class WebcamHands {
     const stored = cal.source === 'calibrated' ? this.saveCal(cal) : false;
     const cam = this.vision.video, fb = cal.fallback || {};
     const fc = fb.counter || {};
-    const missing = CM ? [fb.pinch?.some(Boolean) && 'pinch', fc.axes?.some(Boolean) && 'forward and up', fc.lat && 'sideways reach'].filter(Boolean)
-      : [fb.pinch?.some(Boolean) && 'pinch', fb.push?.some(Boolean) && 'push depth', fb.range && 'reach'].filter(Boolean);
+    const missing = CM ? [fb.pinch?.some(Boolean) && 'pinch', fb.grab?.some(Boolean) && 'grab', fc.axes?.some(Boolean) && 'forward and up', fc.lat && 'sideways reach'].filter(Boolean)
+      : [fb.pinch?.some(Boolean) && 'pinch', fb.grab?.some(Boolean) && 'grab', fb.push?.some(Boolean) && 'push depth', fb.range && 'reach'].filter(Boolean);
     const ok = cal.source !== 'default' && !missing.length;
     this.bus.emit('calibration', { type: 'webcam_hands', ok, mode: cal.source === 'saved' ? 'quick' : 'full', source: cal.source, steps, lnk0: st.map(S => S.lnk0), box: cal.box, carry: CARRY, pressAt: PRESS_AT,
-      liftGain: cal.liftGain, pOn: cal.pOn, pOff: cal.pOff, cutoff: cal.cutoff, mapping: this.mapping, counter: cal.counter || null, measured: cal.measured || null, fallback: cal.fallback || null, hands: view.need, stored, rate: +this.rate.toFixed(1), video: [cam?.videoWidth || null, cam?.videoHeight || null] });
+      liftGain: cal.liftGain, pOn: cal.pOn, pOff: cal.pOff, gOn: cal.gOn, gOff: cal.gOff, cutoff: cal.cutoff, mapping: this.mapping, counter: cal.counter || null, measured: cal.measured || null, fallback: cal.fallback || null, hands: view.need, stored, rate: +this.rate.toFixed(1), video: [cam?.videoWidth || null, cam?.videoHeight || null] });
     Object.assign(view, { step: view.n + 1, id: 'done', phase: 'do', demoId: '', done: true, warn: '', meter: null, prog: [0, 0], title: cal.source === 'default' ? 'Using standard settings' : 'All set',
       hint: cal.source === 'saved' ? 'Using your saved calibration. Press K at any time to measure again.'
         : cal.source === 'default' ? 'Nothing was measured. Press K at any time to calibrate.'
-        : missing.length ? `Could not measure ${missing.join(' and ')}, so standard settings are used for that. Press K to try again.` : CM ? 'Pinch, reach and height are now tuned to your hands and camera. Press K at any time to redo this.' : 'Pinch, press depth and reach are now tuned to your hands. Press K at any time to redo this.' });
+        : missing.length ? `Could not measure ${missing.join(' and ')}, so standard settings are used for that. Press K to try again.` : CM ? 'Pinch, grab, reach and height are now tuned to your hands and camera. Press K at any time to redo this.' : 'Pinch, grab, press depth and reach are now tuned to your hands. Press K at any time to redo this.' });
     await pause(skipAll ? 0 : cal.source === 'saved' ? T(0.9) : T(2.2));
     ui?.hide(); this.calView = null; this.calibrating = false;
     return { ok, cal, steps };
@@ -337,12 +347,12 @@ export class WebcamHands {
   // measurements -> settings (see calibrate). Whatever was not measured this time keeps the value in use now:
   // an earlier calibration if there is one (so a cancelled or partial redo never throws good values away), else the standard.
   deriveCal(res, prev = this.cal) {
-    const P = prev?.fallback ? prev : { ...this.defaultCal(), fallback: { pinch: [true, true], push: [true, true], range: true }, measured: {} };
+    const P = prev?.fallback ? prev : { ...this.defaultCal(), fallback: { pinch: [true, true], grab: [true, true], push: [true, true], range: true }, measured: {} };
     const keep = k => res[k].map((x, i) => x ?? P.measured?.[k]?.[i] ?? null);
-    const cal = { v: 1, t: Date.now(), source: 'calibrated', mapping: this.mapping, box: { ...P.box }, pOn: [...P.pOn], pOff: [...P.pOff], liftGain: [...P.liftGain], cutoff: P.cutoff,
-      fallback: { pinch: [...P.fallback.pinch], push: [...P.fallback.push], range: P.fallback.range },
-      measured: { open: keep('open'), closed: keep('closed'), closedHi: keep('closedHi'), push: keep('push'), jitter: keep('jitter'), pinchBias: res.lnkPinch.map((x, i) => (x === null || res.lnk0[i] === null ? P.measured?.pinchBias?.[i] ?? null : x - res.lnk0[i])) } };
-    const fresh = { pinch: [false, false], push: [false, false] };
+    const cal = { v: 1, t: Date.now(), source: 'calibrated', mapping: this.mapping, box: { ...P.box }, pOn: [...P.pOn], pOff: [...P.pOff], gOn: [...(P.gOn ?? WEBCAM_DEFAULTS.gOn)], gOff: [...(P.gOff ?? WEBCAM_DEFAULTS.gOff)], liftGain: [...P.liftGain], cutoff: P.cutoff,
+      fallback: { pinch: [...P.fallback.pinch], grab: [...(P.fallback.grab ?? [true, true])], push: [...P.fallback.push], range: P.fallback.range },
+      measured: { open: keep('open'), closed: keep('closed'), curlOpen: keep('curlOpen'), curlFist: keep('curlFist'), closedHi: keep('closedHi'), push: keep('push'), jitter: keep('jitter'), pinchBias: res.lnkPinch.map((x, i) => (x === null || res.lnk0[i] === null ? P.measured?.pinchBias?.[i] ?? null : x - res.lnk0[i])) } };
+    const fresh = { pinch: [false, false], grab: [false, false], push: [false, false] };
     for (const i of [0, 1]) {
       // pinch: thresholds sit between this hand's own closed and open gaps; "on" also clears the wobble seen while closed
       const o = res.open[i], c = res.closed[i], r = o !== null && c !== null ? o - c : 0;
@@ -350,11 +360,17 @@ export class WebcamHands {
         const on = clamp(Math.max(0.2 * r, (res.closedHi[i] ?? c) - c + 0.03), 0.2 * r, 0.4 * r), off = Math.min(0.75 * r, Math.max(0.45 * r, on + 0.06));
         cal.pOn[i] = c + on; cal.pOff[i] = c + off; cal.fallback.pinch[i] = false; fresh.pinch[i] = true;
       }
+      // grab: the same idea on the curl scale, between this hand's own fist and open hand
+      const go = res.curlOpen[i], gc = res.curlFist[i], gr = go !== null && gc !== null ? go - gc : 0;
+      if (gr >= 0.25) {
+        const on = clamp(Math.max(0.25 * gr, (res.curlFistHi[i] ?? gc) - gc + 0.03), 0.25 * gr, 0.4 * gr), off = Math.min(0.75 * gr, Math.max(0.5 * gr, on + 0.08));
+        cal.gOn[i] = gc + on; cal.gOff[i] = gc + off; cal.fallback.grab[i] = false; fresh.grab[i] = true;
+      }
       // height: the object touches down at PRESS_AT of the comfortable push
       if (res.push[i] !== null && res.push[i] >= 0.05) { cal.liftGain[i] = clamp(CARRY / (PRESS_AT * res.push[i]), 0.25, 1.4); cal.fallback.push[i] = false; fresh.push[i] = true; }
     }
-    for (const k of ['pinch', 'push']) for (const i of [0, 1]) if (cal.fallback[k][i] && fresh[k][1 - i]) {     /* one hand measured, the other never: it borrows */
-      if (k === 'pinch') { cal.pOn[i] = cal.pOn[1 - i]; cal.pOff[i] = cal.pOff[1 - i]; } else cal.liftGain[i] = cal.liftGain[1 - i];
+    for (const k of ['pinch', 'grab', 'push']) for (const i of [0, 1]) if (cal.fallback[k][i] && fresh[k][1 - i]) {     /* one hand measured, the other never: it borrows */
+      if (k === 'pinch') { cal.pOn[i] = cal.pOn[1 - i]; cal.pOff[i] = cal.pOff[1 - i]; } else if (k === 'grab') { cal.gOn[i] = cal.gOn[1 - i]; cal.gOff[i] = cal.gOff[1 - i]; } else cal.liftGain[i] = cal.liftGain[1 - i];
     }
     if (this.mapping !== 'counter' && res.box && res.box.u1 - res.box.u0 >= MIN_BOX.w * 0.9 && res.box.v1 - res.box.v0 >= MIN_BOX.h * 0.9) { cal.box = res.box; cal.fallback.range = false; }
     if (this.mapping === 'counter') {
@@ -410,13 +426,23 @@ export class WebcamHands {
       if (S.lost > HOLD_LOST) { for (const f of [S.fu, S.fv, S.fk]) f.x = null; S.pts.forEach(p => p.f.forEach(f => (f.x = null))); S.lnkRef = det.lnk; }
       S.lost = 0; S.img = det.lm; S.wl = det.wl; S.ru = det.u; S.rv = det.v; S.rlnk = det.lnk;
       S.u = S.fu.filter(det.u, t); S.v = S.fv.filter(det.v, t); S.lnk = S.fk.filter(det.lnk, t);
-      S.pinchD = det.pinchD;
-      if (this.calibrating) { h.tracked = false; h.pinch = false; S.pinchN = 0; S.lnkRef = S.lnk; S.pressed = false; S.edge = 0; return; }   // hands are parked while the poses are measured
-      // pinch: hysteresis + 2-frame debounce, with this hand's own thresholds
-      const want = h.pinch ? det.pinchD < C.pOff[i] : det.pinchD < C.pOn[i], pending = want !== h.pinch;
-      if (pending) { if (fresh) S.pinchN++; if (S.pinchN >= 2) { h.pinch = want; S.pinchN = 0; } } else S.pinchN = 0;
+      S.pinchD = det.pinchD; S.curl = det.curl;
+      if (this.calibrating) { h.tracked = false; h.pinch = false; S.pin = S.grb = false; S.pinchN = S.grabN = 0; S.lnkRef = S.lnk; S.pressed = false; S.edge = 0; return; }   // hands are parked while the poses are measured
+      // grasping: a pinch (thumb to index) or a grab (the whole hand closing), each with hysteresis + 2-frame debounce
+      // and this hand's own thresholds. Either one holds; the hand lets go when neither does. h.gesture records which
+      // one took hold (logged with the grasp).
+      const wantP = S.pin ? det.pinchD < C.pOff[i] : det.pinchD < C.pOn[i], wantG = S.grb ? det.curl < C.gOff[i] : det.curl < C.gOn[i];
+      if (wantP !== S.pin) { if (fresh) S.pinchN++; if (S.pinchN >= 2) { S.pin = wantP; S.pinchN = 0; } } else S.pinchN = 0;
+      if (wantG !== S.grb) { if (fresh) S.grabN++; if (S.grabN >= 2) { S.grb = wantG; S.grabN = 0; } } else S.grabN = 0;
+      const pending = (wantP || wantG) !== h.pinch;
+      if (!h.pinch && (S.pin || S.grb)) h.gesture = det.curl < C.gOn[i] ? 'grab' : 'pinch';     /* a closed hand is a grab even when the thumb also meets the index */
+      h.pinch = S.pin || S.grb;
       const free = h.holding && h.hold?.mode === 'free';
-      S.holdT = h.holding ? S.holdT + dt : 0;
+      const held0 = S.holdT; S.holdT = h.holding ? S.holdT + dt : 0;
+      if (held0 < GRIP_SETTLE && S.holdT >= GRIP_SETTLE) {      // the grip has settled: record what the hand is actually doing
+        h.gesture = S.grb ? 'grab' : 'pinch';
+        this.bus.emit('grip', { hand: h.side, obj: h.holding.id, how: h.gesture, curl: +det.curl.toFixed(3), pinch_gap: +det.pinchD.toFixed(3) });
+      }
       if (this.mapping === 'counter') {
         // the hand goes where it is over the counter; it holds still while a pinch or release is being confirmed
         if (!pending) this.counterPoint(i, S, S.P);
@@ -456,7 +482,7 @@ export class WebcamHands {
   }
   // for the on-screen preview
   status() {
-    return this.st.map((S, i) => ({ side: this.hands[i].side, seen: S.seen, tracked: this.hands[i].tracked, img: S.img, pinch: this.hands[i].pinch, pinchD: S.pinchD, lift: S.lift, holding: !!this.hands[i].holding,
+    return this.st.map((S, i) => ({ side: this.hands[i].side, seen: S.seen, tracked: this.hands[i].tracked, img: S.img, pinch: this.hands[i].pinch, gesture: this.hands[i].pinch ? this.hands[i].gesture : null, curl: S.curl, pinchD: S.pinchD, lift: S.lift, holding: !!this.hands[i].holding,
       dist: S.lnk0 === null ? 0 : S.lnk - S.lnk0, u: S.u, v: S.v, pOn: this.cal.pOn[i], pOff: this.cal.pOff[i] }));
   }
 }

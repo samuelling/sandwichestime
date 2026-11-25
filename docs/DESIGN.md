@@ -168,7 +168,7 @@ after the counter mapping, and is kept for comparison.
 | moves a hand forward, toward the screen | it moves farther back along the counter (to the wall and the shelves) |
 | raises or lowers a hand | it rises (to the shelves and cupboard) or lowers |
 | holds a hand over something, a little above it | that thing is offered, and the virtual hand dips onto it |
-| pinches thumb and index | grasps what is offered |
+| pinches thumb and index, or closes the whole hand (a grab) | grasps what is offered |
 | lowers a held object onto a surface | sets it down; lowered further, presses (dip, spread, cut). It stays down until lifted clear by 2 cm |
 | turns the hand about the vertical, holding a lid | unscrews it (2.5× gain) |
 | turns the hand over | flips a slice |
@@ -193,11 +193,29 @@ height:
 
 | pose | sets |
 |---|---|
-| hands over the counter, still | the rest pose (counter front, hover height 12 cm), open pinch gap, level, smoothing |
+| hands over the counter, still | the rest pose (counter front, hover height 12 cm), open pinch gap, open-hand curl, level, smoothing |
 | pinch | pinch and release thresholds |
+| grab (a loose fist) | grab and release thresholds |
 | reach forward at the same height | the "forward" direction (rest → back of the counter, 40 cm in the kitchen) |
 | raise | the "up" direction (rest → 55 cm higher, the first shelf) |
 | sweep left and right at counter height | the sideways range (±62 cm in the kitchen) |
+
+### Pinch or grab
+
+Either gesture grasps, in both mappings, and the hand lets go when it is doing
+neither. The pinch is the thumb-index gap; the grab is the hand's curl, the mean
+distance of the four fingertips from the palm centre in palm lengths, computed
+from MediaPipe's 3D landmarks so that it does not depend on the view (about 1.2
+open, 0.4 in a fist; the tracker's own pinch shape, with the other fingers
+folded, reads about 0.6, which the grab threshold stays clear of). Each has its
+own hysteresis and two-frame debounce, and its own per-hand thresholds from
+calibration: grab at 25% of the way from this hand's fist to its open hand (more
+if the fist wobbles, up to 40%), release at 50%. Each grasp event records `how` at its onset, and 0.3 s later a `grip` event
+records the settled shape (`grab` if the hand is closed, else `pinch`, with the
+curl and pinch gap). The settled one is the one to analyse: a closing fist
+often brings the thumb to the index before the fingers have finished curling,
+so at onset it can look like a pinch. Together they let precision and power
+grips be told apart.
 
 Picking is tolerant of jitter in a specific way: a small thing already offered
 (the clip on the bag, the lid on the jar) stays offered until the hand is

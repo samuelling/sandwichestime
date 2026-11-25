@@ -16,18 +16,20 @@ const FILL = '#f6efe3';
 const PINCH2D = POSE.OPEN.map(a => [a[0], a[1]]);
 Object.assign(PINCH2D, { 2: [0.044, 0.052], 3: [0.063, 0.074], 4: [0.071, 0.103], 6: [0.03, 0.128], 7: [0.054, 0.139], 8: [0.07, 0.117],
   10: [0.006, 0.134], 11: [0.008, 0.158], 12: [0.01, 0.177], 14: [-0.015, 0.124], 15: [-0.017, 0.146], 16: [-0.019, 0.163] });
+// a fist, flattened: knuckles in a rounded row, fingers folded under, thumb across the front
+const FIST2D = POSE.FIST.map(a => [a[0], a[1]]);
 
 // 21 canvas points for one hand. (u, v): palm centre as a fraction of the rect; k: size (rect heights per metre).
-function handPoints(side, pinch, u, v, k, r, squash = 1) {
+function handPoints(side, pinch, u, v, k, r, squash = 1, fist = 0) {
   const m = side === 'R' ? -1 : 1;
-  const wl = POSE.OPEN.map((a, i) => { const b = PINCH2D[i]; return [-(lerp(a[0], b[0], pinch)) * m, -lerp(a[1], b[1], pinch)]; });
+  const wl = POSE.OPEN.map((a, i) => { const b = PINCH2D[i], f = FIST2D[i], x = lerp(lerp(a[0], b[0], pinch), f[0], fist), y = lerp(lerp(a[1], b[1], pinch), f[1], fist); return [-x * m, -y]; });
   const pc = [0, 5, 17].reduce((p, i) => [p[0] + wl[i][0] / 3, p[1] + wl[i][1] / 3], [0, 0]);
   return wl.map(([x, y]) => [r.x + u * r.w - k * (x - pc[0]) * r.h, r.y + v * r.h + k * (y - pc[1]) * r.h * squash]);      /* squash < 1: a flat hand seen from above, foreshortened */
 }
 
 // one cartoon hand: a cuffed wrist, a soft palm and capsule fingers, outlined in the hand's colour
-export function drawCartoonHand(g, side, { u, v, k, pinch = 0, alpha = 1, ghost = false, back = false, squash = 1 }, r) {
-  const P = handPoints(side, pinch, u, v, k, r, squash), s = k * r.h, col = HAND_COL[side], ol = Math.max(2, 0.0032 * s);
+export function drawCartoonHand(g, side, { u, v, k, pinch = 0, fist = 0, alpha = 1, ghost = false, back = false, squash = 1 }, r) {
+  const P = handPoints(side, pinch, u, v, k, r, squash, fist), s = k * r.h, col = HAND_COL[side], ol = Math.max(2, 0.0032 * s);
   const palm = [0, 1, 5, 9, 13, 17];
   // wrist and cuff run from the wrist joint away from the fingers
   const dx = P[0][0] - P[9][0], dy = P[0][1] - P[9][1], dl = Math.hypot(dx, dy) || 1, ux = dx / dl, uy = dy / dl;
@@ -74,6 +76,8 @@ export const DEMOS = {
     at: t => { const rise = seg(t, 0, 0.7); return { hands: ['L', 'R'].map(sd => ({ side: sd, u: BASE[sd].u, v: lerp(0.98, BASE[sd].v, rise), k: 2.3, pinch: 0, alpha: rise })), ring: seg(t, 0.9, 2.1), check: t > 2.1 }; } },
   pinch: { len: 2.9, caption: 'thumb tip meets index tip, other fingers up · hold it',
     at: t => { const p = seg(t, 0.35, 0.85) * (1 - seg(t, 2.45, 2.85)); return { hands: ['L', 'R'].map(sd => ({ side: sd, ...BASE[sd], k: 2.3, pinch: p })), ring: seg(t, 0.95, 2.0), check: t > 2.0 && t < 2.45, spark: p > 0.95 }; } },
+  grab: { len: 2.9, caption: 'close the whole hand into a loose fist · hold it',
+    at: t => { const f = seg(t, 0.35, 0.85) * (1 - seg(t, 2.45, 2.85)); return { hands: ['L', 'R'].map(sd => ({ side: sd, ...BASE[sd], k: 2.3, pinch: 0, fist: f })), ring: seg(t, 0.95, 2.0), check: t > 2.0 && t < 2.45 }; } },
   push: { len: 3.1, caption: 'keep pinching · push toward the screen · hold',
     at: t => { const g = seg(t, 0.35, 1.05) * (1 - seg(t, 2.55, 3.05)); return { hands: ['L', 'R'].map(sd => ({ side: sd, ...BASE[sd], k: 2.0 * (1 + 0.38 * g), pinch: 1 })), ghost: g > 0.05 ? 2.0 : 0, push: g, ring: seg(t, 1.15, 2.15), check: t > 2.15 && t < 2.55 }; } },
   range: { len: 4.4, caption: 'open hands · sweep to every edge you can reach',
@@ -99,6 +103,8 @@ Object.assign(DEMOS, {
     at: t => { const k = seg(t, 0, 0.8); return { hands: both(() => ({ h: lerp(1.3, HREST, k), alpha: k })), ring: seg(t, 0.9, 2.1), check: t > 2.1 }; } },
   c_pinch: { len: 2.9, scene: 'counter', caption: 'palms down · thumb tip meets index tip · hold it',
     at: t => { const p = seg(t, 0.35, 0.85) * (1 - seg(t, 2.45, 2.85)); return { hands: both(() => ({ pinch: p })), ring: seg(t, 0.95, 2.0), check: t > 2.0 && t < 2.45, spark: p > 0.95 }; } },
+  c_grab: { len: 2.9, scene: 'counter', caption: 'palms down · close the whole hand, as if around a jar · hold it',
+    at: t => { const f = seg(t, 0.35, 0.85) * (1 - seg(t, 2.45, 2.85)); return { hands: both(() => ({ fist: f })), ring: seg(t, 0.95, 2.0), check: t > 2.0 && t < 2.45 }; } },
   c_far: { len: 3.1, scene: 'counter', caption: 'same height · reach toward the screen · hold',
     at: t => { const f = seg(t, 0.35, 1.1) * (1 - seg(t, 2.55, 3.05)); return { hands: both(() => ({ d: lerp(0.12, 0.92, f) })), arrows: 'far', moving: seg(t, 0.2, 0.5) * (1 - seg(t, 1.05, 1.3)), ring: seg(t, 1.15, 2.15), check: t > 2.15 && t < 2.55 }; } },
   c_up: { len: 3.1, scene: 'counter', caption: 'raise your hands, as if to a high shelf · hold',
@@ -165,7 +171,7 @@ export function drawDemo(g, id, t, r, { caption = true, label = '' } = {}) {
     g.restore();
   }
   for (const h of st.hands) {
-    const Q = handPoints(h.side, h.pinch, h.u, h.v, h.k, r, h.squash ?? 1), cx = (Q[0][0] + Q[5][0] + Q[17][0]) / 3, cy = (Q[0][1] + Q[5][1] + Q[17][1]) / 3, R = 0.075 * h.k * r.h;
+    const Q = handPoints(h.side, h.pinch, h.u, h.v, h.k, r, h.squash ?? 1, h.fist ?? 0), cx = (Q[0][0] + Q[5][0] + Q[17][0]) / 3, cy = (Q[0][1] + Q[5][1] + Q[17][1]) / 3, R = 0.075 * h.k * r.h;
     if (st.ring > 0) {    // the same hold ring the real step shows, behind the hand
       g.save(); g.lineWidth = 8 * sc; g.strokeStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.arc(cx, cy, R, 0, 6.2832); g.stroke();
       g.strokeStyle = st.check ? '#8fd18a' : HAND_COL[h.side]; g.beginPath(); g.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + st.ring * 6.2832); g.stroke(); g.restore();

@@ -22,7 +22,11 @@ export function drawHands(g, W, H, status, scale = 1) {
     // the ring closes as the fingers approach this hand's pinch threshold, and fills when pinched
     const on = s.pOn ?? 0.3, px = (X(s.img[4]) + X(s.img[8])) / 2, py = (Y(s.img[4]) + Y(s.img[8])) / 2, r = (4 + 14 * Math.min(1, Math.max(0, (s.pinchD - on) / 0.7))) * Math.min(scale, 1.3);
     g.beginPath(); g.arc(px, py, r, 0, 6.3); g.lineWidth = 2 * scale; g.strokeStyle = c; g.stroke();
-    if (s.pinch) { g.fillStyle = c; g.fill(); }
+    if (s.pinch && s.gesture !== 'grab') { g.fillStyle = c; g.fill(); }
+    if (s.gesture === 'grab') {      // a grab: filled disc on the palm
+      const cx = (X(s.img[0]) + X(s.img[5]) + X(s.img[17])) / 3, cy = (Y(s.img[0]) + Y(s.img[5]) + Y(s.img[17])) / 3;
+      g.beginPath(); g.arc(cx, cy, 9 * Math.min(scale, 1.3), 0, 6.3); g.fillStyle = c; g.fill();
+    }
     g.fillStyle = c; g.font = `600 ${Math.round(11 * scale)}px ui-sans-serif, system-ui`; g.fillText(s.side, X(s.img[0]) - 3 * scale, Y(s.img[0]) + 14 * scale);
   }
 }

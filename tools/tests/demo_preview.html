@@ -6,11 +6,11 @@
 import { drawDemo, DEMOS } from '/src/ui/handdemo.js';
 const g = document.getElementById('c').getContext('2d'), Q = new URLSearchParams(location.search);
 if (Q.get('id')) { g.fillStyle = '#2a241e'; g.fillRect(0, 0, 1920, 1080); drawDemo(g, Q.get('id'), +Q.get('t') || 1.5, { x: 0, y: 0, w: 1920, h: 1080 }); window.__done = true; throw 0; }
-const ids = Q.get('set') === 'counter' ? ['c_open', 'c_pinch', 'c_far', 'c_up', 'c_range'] : ['open', 'pinch', 'push', 'range'], cols = 4;
+const ids = Q.get('set') === 'counter' ? ['c_open', 'c_pinch', 'c_grab', 'c_far', 'c_up', 'c_range'] : Q.get('set') === 'grab' ? ['grab', 'c_grab'] : ['open', 'pinch', 'push', 'range'], cols = 4;
 const W = 1920 / cols, H = 1080 / ids.length;
 ids.forEach((id, row) => { const D = DEMOS[id];
   for (let c = 0; c < cols; c++) { const t = [0.5, 0.45, 0.4, 0.75][c] * D.len * (c === 0 ? 1 : 1) + (c === 0 ? 0 : 0);
-    const tt = /range/.test(id) ? [0.6, 1.2, 2.6, 3.3][c] : /pinch/.test(id) ? [0.2, 0.7, 1.5, 2.2][c] : /push|far|up/.test(id) ? [0.2, 0.8, 1.6, 2.3][c] : [0.3, 0.8, 1.5, 2.3][c];
+    const tt = /grab/.test(id) ? [0.3, 0.6, 0.9, 1.6][c] : /range/.test(id) ? [0.6, 1.2, 2.6, 3.3][c] : /pinch/.test(id) ? [0.2, 0.7, 1.5, 2.2][c] : /push|far|up/.test(id) ? [0.2, 0.8, 1.6, 2.3][c] : [0.3, 0.8, 1.5, 2.3][c];
     const r = { x: c * W, y: row * H, w: W, h: H };
     g.save(); g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); g.fillStyle = (row + c) % 2 ? '#221d18' : '#2a241e'; g.fillRect(r.x, r.y, r.w, r.h);
     drawDemo(g, id, tt, r, { caption: c === 3 }); g.restore(); } });
