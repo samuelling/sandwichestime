@@ -15,10 +15,13 @@ manager.setURLModifier(url => (ASSET_BASE !== 'assets/' && /\.(jpe?g|png)$/i.tes
 const gltf = new GLTFLoader(manager); gltf.setMeshoptDecoder(MeshoptDecoder);   // geometry is meshopt-compressed (tools/compress_models.sh)
 export const modelManager = manager;
 const cache = new Map();
-async function loadModel(manifest, id) {
+export async function loadModel(manifest, id) {
   if (!cache.has(id)) cache.set(id, gltf.loadAsync('assets/' + manifest.models[id].file).then(g => g.scene));
   return cache.get(id);
 }
+
+// a glTF that is not in the manifest (the Blender-built room kit)
+export async function loadPath(url) { if (!cache.has(url)) cache.set(url, gltf.loadAsync(url).then(g => g.scene)); return cache.get(url); }
 
 // Distractor catalogue: model id (+ optional sub-node), where it naturally lives.
 const D = [
@@ -122,7 +125,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
     place(ent, region, p); return true;
   };
 
-  const decor = Promise.all(['wall_clock', 'potted_plant_01', 'bar_chair_round_01'].map(id => loadModel(manifest, id)));   // start these downloads now
+  const decor = loadModel(manifest, 'wall_clock');   // start this download now
   // ---- task objects ----
   const plate = makePlate(M), bag = makeBreadBag(M, world), pb = makeJar(M, world, 'pb'), jelly = makeJar(M, world, 'jelly');
   const knife = makeKnife(M), towel = makeTowel(M), bell = makeBell(M);
@@ -181,14 +184,7 @@ export async function buildLayout(world, kitchen, M, manifest, cfg) {
   const clockEnt = new Entity('wall_clock', clock, { kind: 'wall_clock', role: 'distractor', grabbable: false, settle: 'none' });
   clock.position.set(0.08, 2.22, K.counterBack + 0.002); world.add(clockEnt, scene);
   placements.push({ id: 'wall_clock', kind: 'wall_clock', role: 'distractor', region: 'wall', pos: clock.position.toArray(), yaw: 0 });
-  const plant = (await loadModel(manifest, 'potted_plant_01')).clone(true);
-  const plantEnt = new Entity('potted_plant_01', plant, { kind: 'potted_plant_01', role: 'distractor', grabbable: false, settle: 'none' });
-  plant.position.set(1.32, 0, 0.55); world.add(plantEnt, scene);
-  for (const [i, x] of [[1, -1.4], [2, -0.9]]) {
-    const ch = (await loadModel(manifest, 'bar_chair_round_01')).clone(true);
-    const e = new Entity(`bar_chair_${i}`, ch, { kind: 'bar_chair', role: 'distractor', grabbable: false, settle: 'none' });
-    ch.position.set(x, 0, 2.45); ch.rotation.y = r() * 6; world.add(e, scene);
-  }
+  // (the floor plant, stool and the rest of the room's furniture are placed by room.js)
 
   // record homes
   for (const e of world.entities.values()) { if (e.root.parent) { e.home = e.root.getWorldPosition(new THREE.Vector3()); } }

@@ -8,6 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { World } from './core/world.js';
 import { buildMaterials, setMaxAnisotropy, setAssetDetail } from './scene/materials.js';
 import { buildKitchen } from './scene/kitchen.js';
+import { buildRoom } from './scene/room.js';
 import { buildLayout, modelManager } from './scene/layout.js';
 import { Hand, HandRig } from './interact/hand.js';
 import { Manipulator } from './interact/manip.js';
@@ -34,7 +35,7 @@ const params = new URLSearchParams(location.search);
 const form = $('#setup');
 // Phones and tablets: touch controls, the low-memory asset set and no post-processing by default (URL parameters still override).
 const coarse = matchMedia('(pointer: coarse)').matches, small = Math.min(screen.width, screen.height) < 700;
-if (coarse) { form.elements.input.value = 'touch'; form.elements.quality.checked = false; form.elements.saliency.checked = false; if (small) form.elements.distractors.value = 'sparse'; }
+if (coarse) { form.elements.input.value = 'touch'; form.elements.quality.checked = false; form.elements.saliency.checked = false; if (small) { form.elements.distractors.value = 'sparse'; form.elements.room.value = 'plain'; } }
 for (const [k, v] of params) { const el = form.elements[k]; if (el) { if (el.type === 'checkbox') el.checked = v !== '0'; else { if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; } } }
 // ---- loading screen and visible errors: nothing should ever fail as a silent black screen ----
 const loadEl = $('#loading');
@@ -93,7 +94,7 @@ async function start(cfg) {
   const hdr = await new HDRLoader().loadAsync('assets/' + manifest.hdri.lythwood_room);
   scene.environment = pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity = 0.45; hdr.dispose();
   const kitchen = buildKitchen(world, M);
-  const L = await buildLayout(world, kitchen, M, manifest, cfg);
+  const [L, room] = await Promise.all([buildLayout(world, kitchen, M, manifest, cfg), buildRoom(world, kitchen, M, manifest, cfg)]);
   // Reflections of this room, not of the HDRI's: capture the lit kitchen from the work area and use that as the environment.
   if (params.get('roomenv') !== '0') {
     scene.updateMatrixWorld(true);
@@ -109,10 +110,10 @@ async function start(cfg) {
   const manip = new Manipulator(world, L.task, cfg, taskDef);
   const body = new Body(); body.applyToCamera(camera);
 
-  const meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
-    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.6.0' };
-  const logger = new Logger(meta);
-  logger.layout = { placements: L.placements, counterY: 0.91 };
+  let meta = { participant: cfg.participant, session: cfg.session, condition: cfg.condition, layout: cfg.layout, seed: cfg.seed, distractors: cfg.distractors,
+    input: cfg.input, gaze: cfg.gaze, detail: cfg.detail || 'standard', endpoint: cfg.endpoint || null, userAgent: navigator.userAgent, screen: [innerWidth, innerHeight, devicePixelRatio], fovY: camera.fov, app: 'sandwichestime 0.7.0' };
+  const logger = new Logger(meta); meta = logger.meta;      // the logger keeps its own copy: later additions (camera, aids, head, room) must go to that one
+  logger.layout = { placements: L.placements, counterY: 0.91, room: room.placements };
   logger.task = taskDef;
   const monitor = new TaskMonitor(world, L.task, taskDef, cfg);
 
@@ -142,7 +143,7 @@ async function start(cfg) {
   const aids = cfg.aids !== 'off' && cfg.input !== 'autopilot' ? new GraspAids(scene, world, hands, manip, camera) : null;
   meta.aids = !!aids; meta.handtone = cfg.handtone || 'neutral'; if (webcamHands) meta.webcammap = webcamHands.mapping;
   if (headOn) { headTracker = new HeadTracker(vision, world.bus, { flipYaw: params.get('headflip') === '1' }); if (preview) preview.head = headTracker; }
-  meta.head = headOn ? 'webcam' : 'off';
+  meta.head = headOn ? 'webcam' : 'off'; meta.room = room.detail;
 
   // ---- gaze ----
   const gaze = new Gaze(world, camera, cfg, taskDef.thresholds);

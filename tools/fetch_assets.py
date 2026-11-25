@@ -34,7 +34,14 @@ MODELS = {
     # decor / appliances
     "potted_plant_04": "1k", "potted_plant_01": "1k", "wall_clock": "1k",
     "bar_chair_round_01": "1k",
+    # the rest of the room (src/scene/room.js): breakfast table, sideboard, pictures, plants, odds and ends
+    "wooden_table_02": "1k", "painted_wooden_chair_01": "1k", "modern_ceiling_lamp_01": "1k",
+    "hanging_picture_frame_01": "1k", "hanging_picture_frame_02": "1k",
+    "standing_picture_frame_01": "1k", "potted_plant_02": "1k", "wicker_basket_02": "1k",
+    "wooden_broom": "1k", "book_encyclopedia_set_01": "1k", "ceramic_vase_02": "1k", "ceramic_vase_04": "1k",
 }
+# large pieces seen across the room keep 1k textures in the standard-detail set (tools/make_lite.py)
+FURNITURE = ["wooden_table_02", "painted_wooden_chair_01", "hanging_picture_frame_01", "hanging_picture_frame_02"]
 TEXTURES = {  # id -> (res, maps)
     "herringbone_parquet": ("2k", ["diff", "nor_gl", "rough"]),
     "white_plaster_02": ("1k", ["diff", "nor_gl", "rough"]),

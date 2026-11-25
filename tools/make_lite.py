@@ -5,19 +5,23 @@ Geometry (.gltf/.bin) is shared with the full set. Re-run after fetch_assets.py.
 
     pip install pillow && python3 tools/make_lite.py
 """
-import os
+import os, sys
 from PIL import Image
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fetch_assets import FURNITURE
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets")
 OUT = os.path.join(ROOT, "lite")
 total = 0
-for sub, cap in (("models", 512), ("textures", 1024)):
+for sub, cap0 in (("models", 512), ("textures", 1024)):
     for d, _, files in os.walk(os.path.join(ROOT, sub)):
         for f in files:
+            cap = cap0
             if not f.lower().endswith((".jpg", ".jpeg", ".png")): continue
             src = os.path.join(d, f); dst = os.path.join(OUT, os.path.relpath(src, ROOT))
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             im = Image.open(src)
+            if sub == "models" and os.path.relpath(src, os.path.join(ROOT, "models")).split(os.sep)[0] in FURNITURE: cap = 1024
             if max(im.size) > cap: im = im.resize([max(1, round(s * cap / max(im.size))) for s in im.size], Image.LANCZOS)
             if f.lower().endswith(".png"): im.save(dst, optimize=True)
             else: im.convert("RGB").save(dst, quality=82, optimize=True)

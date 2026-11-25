@@ -8,7 +8,8 @@ A modern take on Mary Hayhoe's sandwich study (Hayhoe, Shrivastava, Mruczek & Pe
 
 | | |
 |---|---|
-| **Kitchen** | Three.js with PBR materials, soft shadows, ambient occlusion and multisampled antialiasing. Reflections are captured from the room itself, and the sun comes in through the window. About 40 CC0 photoscanned props from Poly Haven (fruit, buns, croissant, cake, kettle, jug, tea set, tins, plants), including sandwich-adjacent lures such as a second, wooden plate. The cabinets have a working drawer and cupboard door, and the fridge has a working door. |
+| **Kitchen** | Three.js with PBR materials, soft shadows, ambient occlusion and multisampled antialiasing. Reflections are captured from the room itself, and the sun comes in through the windows. About 40 CC0 photoscanned props from Poly Haven (fruit, buns, croissant, cake, kettle, jug, tea set, tins, plants), including sandwich-adjacent lures such as a second, wooden plate. The cabinets have a working drawer and cupboard door, and the fridge has a working door. |
+| **Room** | The kitchen is a whole room, finished in every direction you can turn your head: a second window with a breakfast table in a patch of sun, a pendant lamp, a painted dresser with crockery and books, a panelled door standing open on a lit hall, a radiator, a peg rail with an apron and tea towel, pictures, cornice, skirting, blinds, switches and sockets. The joinery and the hanging cloth are modelled in Blender (`tools/blender/`, cloth draped by simulation); the furniture is CC0 scans. Everything in it is a gaze AOI and is written to the log. `room=plain` keeps the walls, windows, door and lights and leaves out the furniture. |
 | **Task objects** | Built procedurally so every part is measurable. A bagged loaf of 12 slices with heels and a bread clip. Peanut butter and jelly jars with screw lids (about 1.25 turns to open). A butter knife that carries a measurable load of each substance, plus residue. Slices with paintable faces, so spread coverage is a number. A plate, a dish towel for wiping, and a service bell to finish. |
 | **Hands** | A rigged, skinned hand mesh (neutral glove or five skin tones), driven the same way in every mode. **WebXR** hand tracking (Quest, Vision Pro) with a controller fallback. **Webcam** tracking of both hands (MediaPipe): hands palm-down as if over the counter (forward is farther, up is up), pinch or grab (close the hand) to grasp, lower to put down or press, turn to unscrew, turn the hand over to flip. An older upright mapping (palms to the screen) is an option. With the webcam, turning your head looks around the kitchen (the view turns further than your head; leaning gives parallax; R recentres). A guided calibration (open, pinch, push, reach: about 20 s, saved per participant, K to redo) fits the pinch thresholds, press depth, reach and smoothing to each person. A live camera preview shows the tracked skeletons, pinch state and height. **Touch screen** for phones and tablets (tap to grab or put down, drag to move, circle to unscrew, on-screen Press / Flip / Let go). **Mouse and keyboard** for piloting. Optional grasp aids (a ring under each hand that wraps the object you are about to take). |
 | **Gaze** | Headset head ray; webcam iris tracking (MediaPipe face mesh, 9-point calibration, 5-point validation); any lab tracker over WebSocket (`tools/gaze_bridge_example.py`); mouse (debug only). AOIs are hit-tested per frame with an angular tolerance, and I-VT fixations are detected online. |
@@ -52,19 +53,20 @@ src/                    browser app (ES modules, no build step)
 task/sandwich_task.json shared task definition (sub-goals, thresholds, action costs)
 analysis/sandwich/      Python analysis package
 tools/                  asset fetcher, headless autopilot runner, control tests, eye-tracker bridge template
+tools/blender/          Blender (bpy) scripts that build the room's joinery and cloth: assets/models/room_kit
 assets/, vendor/        CC0 Poly Haven assets; three.js r187, MediaPipe tasks-vision, WebXR generic hand models (vendored, works offline)
 examples/               autopilot reference sessions
 ```
 
 ## URL parameters
 
-Any setup field can be prefilled in the URL, for example `?participant=p07&condition=tidy&layout=stored&seed=12&input=webcam&gaze=webcam`. Add `&auto=1` to skip the form. With webcam hands, `&calib=full` forces the full calibration, `&calib=quick` only the open-hand check, and `&calib=off` uses standard settings. `&fast=N` runs N fixed 1/60 s simulation steps per frame, for headless autopilot runs.
+Any setup field can be prefilled in the URL, for example `?participant=p07&condition=tidy&layout=stored&seed=12&input=webcam&gaze=webcam`. Add `&auto=1` to skip the form. With webcam hands, `&calib=full` forces the full calibration, `&calib=quick` only the open-hand check, and `&calib=off` uses standard settings. `&room=plain` leaves the furniture out of the room (the default on phones). `&fast=N` runs N fixed 1/60 s simulation steps per frame, for headless autopilot runs.
 
 ## Loading and texture detail
 
-The default download is about 14 MB: meshopt-compressed geometry (5 MB) plus the standard texture set in `assets/lite/` (512 px props, 6 MB). "High" texture detail in the setup form uses the 1k originals instead (about 55 MB more). A loading screen shows progress, and start-up or graphics failures are reported on screen rather than as a blank canvas.
+The default download is about 19 MB: meshopt-compressed geometry (6 MB), the standard texture set in `assets/lite/` (512 px props, 1k for the room and its furniture; 9 MB) and the libraries. With `room=plain` it is 14 MB. "High" texture detail in the setup form uses the 1k originals instead (about 60 MB more). A loading screen shows progress, and start-up or graphics failures are reported on screen rather than as a blank canvas.
 
-After changing assets: `python3 tools/fetch_assets.py --force`, then `sh tools/compress_models.sh` and `python3 tools/make_lite.py`. `sh tools/check_syntax.sh` parses every module.
+After changing assets: `python3 tools/fetch_assets.py --force`, then `sh tools/compress_models.sh` and `python3 tools/make_lite.py`. The room kit is rebuilt with `pip install bpy && python3 tools/blender/build_room_kit.py && sh tools/compress_models.sh` (about a minute; the cloth is simulated). `tools/tests/kit_preview.html` and `model_preview.html` show the parts on their own. `sh tools/check_syntax.sh` parses every module.
 
 ## Phones and tablets
 
@@ -78,9 +80,10 @@ python3 tools/test_controls.py synthetic   # the upright webcam mapping, driven 
 python3 tools/test_controls.py counter     # the counter mapping: generated palm-down hands in front of a pinhole camera
 python3 tools/test_controls.py head        # webcam head tracking, with synthetic face poses
 python3 tools/test_controls.py calibration # the guided webcam calibration, with generated hands (tidy, one-handed, twitchy)
+python3 tools/test_controls.py room        # the room: closed in every direction, things where a look finds them, sun only through the windows
 python3 tools/test_controls.py mouse       # real mouse events
 python3 tools/test_controls.py touch       # an emulated phone, real touch events
 python3 tools/test_controls.py camera --video hands.y4m --shot out.png   # a video file as a fake webcam
 ```
 
-Assets are CC0 from [Poly Haven](https://polyhaven.com). three.js is MIT, MediaPipe is Apache-2.0, and the hand models are from the MIT-licensed WebXR Input Profiles project.
+Scanned assets are CC0 from [Poly Haven](https://polyhaven.com); the room kit and the print on the wall are made here. three.js is MIT, MediaPipe is Apache-2.0, and the hand models are from the MIT-licensed WebXR Input Profiles project.

@@ -1,5 +1,5 @@
-// The kitchen shell: room, counters, cabinets (one working drawer, one working
-// cupboard door), sink, cooktop, fridge (working door), shelves, window, lights.
+// The counter wall of the kitchen: floor, ceiling, back wall, counters, cabinets (one working drawer, one working
+// cupboard door), sink, cooktop, fridge (working door), shelves, lights. The rest of the room is in room.js.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { Entity } from '../core/world.js';
@@ -92,28 +92,13 @@ export function buildKitchen(world, M) {
   const backGeo = new THREE.ShapeGeometry(wallShape); worldUV(backGeo, 0.7);
   const back = new THREE.Mesh(backGeo, M.plaster); back.position.z = K.counterBack - 0.002; back.castShadow = true;
   fixture(back, 'wall');
-  // reveals + sill
-  room.add(boxSpan(W.x0 - 0.0, W.x1, W.y0 - 0.03, W.y0, K.counterBack - 0.16, K.counterBack + 0.04, M.windowFrame));
+  // reveals (the frame, sill, glass and blind come from the room kit, see room.js)
   room.add(boxSpan(W.x0 - 0.01, W.x0, W.y0, W.y1, K.counterBack - 0.16, K.counterBack, M.plaster));
   room.add(boxSpan(W.x1, W.x1 + 0.01, W.y0, W.y1, K.counterBack - 0.16, K.counterBack, M.plaster));
   room.add(boxSpan(W.x0, W.x1, W.y1, W.y1 + 0.01, K.counterBack - 0.16, K.counterBack, M.plaster));
-  // frame + mullion + view
-  const fz = K.counterBack - 0.11;
-  for (const [x0, x1, y0, y1] of [[W.x0, W.x1, W.y0, W.y0 + 0.045], [W.x0, W.x1, W.y1 - 0.045, W.y1], [W.x0, W.x0 + 0.045, W.y0, W.y1], [W.x1 - 0.045, W.x1, W.y0, W.y1], [(W.x0 + W.x1) / 2 - 0.02, (W.x0 + W.x1) / 2 + 0.02, W.y0, W.y1], [W.x0, W.x1, (W.y0 + W.y1) / 2 - 0.015, (W.y0 + W.y1) / 2 + 0.015]])
-    room.add(boxSpan(x0, x1, y0, y1, fz - 0.02, fz + 0.02, M.windowFrame));
   const view = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), M.windowView);
   view.position.set((W.x0 + W.x1) / 2, (W.y0 + W.y1) / 2 + 0.1, K.counterBack - 0.9); room.add(view); world.addFixture(view, 'window');
-  const pane = new THREE.Mesh(new THREE.PlaneGeometry(W.x1 - W.x0, W.y1 - W.y0), new THREE.MeshPhysicalMaterial({ transmission: 1, roughness: 0.02, thickness: 0.004, color: 0xffffff }));
-  pane.position.set((W.x0 + W.x1) / 2, (W.y0 + W.y1) / 2, fz); pane.castShadow = false; room.add(pane); world.addFixture(pane, 'window');
-
-  // side and rear walls
-  const sideGeo = new THREE.PlaneGeometry(K.roomZ1 - K.counterBack, K.ceiling);
-  const left = new THREE.Mesh(sideGeo, M.plaster); left.rotation.y = Math.PI / 2; left.position.set(K.roomX0, K.ceiling / 2, (K.roomZ1 + K.counterBack) / 2); fixture(left, 'wall');
-  const right = new THREE.Mesh(sideGeo, M.plaster); right.rotation.y = -Math.PI / 2; right.position.set(K.roomX1, K.ceiling / 2, (K.roomZ1 + K.counterBack) / 2); fixture(right, 'wall');
-  const rear = new THREE.Mesh(new THREE.PlaneGeometry(K.roomX1 - K.roomX0, K.ceiling), M.plaster); rear.rotation.y = Math.PI; rear.position.set((K.roomX0 + K.roomX1) / 2, K.ceiling / 2, K.roomZ1); fixture(rear, 'wall');
-  const doorway = boxSpan(-0.2, 0.7, 0, 2.1, K.roomZ1 - 0.02, K.roomZ1, new THREE.MeshStandardMaterial({ color: 0x3b332b, roughness: 0.8 })); fixture(doorway, 'wall');
-  // skirting
-  room.add(boxSpan(K.roomX0, K.roomX1, 0, 0.09, K.roomZ1 - 0.015, K.roomZ1, M.windowFrame));
+  // the other three walls, the doorway and everything behind the participant are built in room.js
 
   // ---- tile backsplash (wraps under the window) ----
   const bs = new THREE.Shape([[K.xMin, Y], [K.xMax, Y], [K.xMax, 1.45], [W.x1, 1.45], [W.x1, W.y0], [W.x0, W.y0], [W.x0, 1.45], [K.xMin, 1.45]].map(p => new THREE.Vector2(...p)));
@@ -305,5 +290,5 @@ export function buildKitchen(world, M) {
   const fill = new THREE.HemisphereLight(0xfbf7f0, 0x9a8a76, 0.55); lights.add(fill);   // bounce light: keeps the upper walls from going muddy
   const underShelf = new THREE.PointLight(0xffd9a8, 0.9, 1.6, 2); underShelf.position.set(0.08, K.shelves[0] - 0.06, K.counterBack + 0.18); lights.add(underShelf);
 
-  return { room, lights: { sun, spots, fill }, drawer: drawerEntity, cupboard: cupboardEntity, fridge: fridgeEntity, shelfMeshes };
+  return { room, fixture, lights: { sun, spots, fill }, drawer: drawerEntity, cupboard: cupboardEntity, fridge: fridgeEntity, shelfMeshes };
 }

@@ -71,6 +71,21 @@ async def head(a):
     if r['errors']: print(r['errors'])
     print('PASS' if r['pass'] and not r['errors'] else 'FAIL'); return r['pass'] and not r['errors']
 
+async def room(a):
+    """The furnished room: closed in every direction, things where a look finds them, sunlight only through the windows."""
+    js = open(os.path.join(HERE, 'tests', 'room_check.js')).read()
+    async with async_playwright() as p:
+        b = await p.chromium.launch(executable_path=a.chrome, args=GL)
+        pg = await b.new_page(viewport={'width': 800, 'height': 480})
+        await pg.goto(f"{a.base}?auto=1&input=mouse&participant=room_test&gaze=none&quality=0&saliency=0&seed={a.seed}&pr=0.5&head=off")
+        await pg.wait_for_function('window.__sandwich && window.__sandwich.logger && window.__sandwich.logger.recording', timeout=180000)
+        r = json.loads(await pg.evaluate(js))
+        if a.shot: await pg.screenshot(path=a.shot, timeout=120000)
+        await b.close()
+    for k, v in r['out'].items(): print('  ok ' if v['ok'] else '  XX ', k, v.get('info', ''))
+    if r['errors']: print(r['errors'])
+    print('PASS' if r['pass'] and not r['errors'] else 'FAIL'); return r['pass'] and not r['errors']
+
 async def counter(a):
     """The counter mapping (palms down over the counter) with synthetic hands in front of a pinhole camera."""
     js = open(os.path.join(HERE, 'tests', 'webcam_counter.js')).read()
@@ -211,11 +226,11 @@ async def touch(a):
     print('PASS' if all(out.values()) else 'FAIL'); return all(out.values())
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'counter', 'head', 'calibration', 'camera', 'mouse', 'touch'])
+    ap = argparse.ArgumentParser(); ap.add_argument('which', choices=['synthetic', 'counter', 'head', 'calibration', 'room', 'camera', 'mouse', 'touch'])
     ap.add_argument('--base', default='http://localhost:8811/index.html'); ap.add_argument('--chrome', default=None); ap.add_argument('--seed', type=int, default=1)
     ap.add_argument('--video'); ap.add_argument('--shot'); ap.add_argument('--phase', default=None); ap.add_argument('--wait', type=float, default=6); ap.add_argument('--tone', default='neutral')
     a = ap.parse_args()
-    sys.exit(0 if asyncio.run({'synthetic': synthetic, 'counter': counter, 'head': head, 'calibration': calibration, 'camera': camera, 'mouse': mouse, 'touch': touch}[a.which](a)) else 1)
+    sys.exit(0 if asyncio.run({'synthetic': synthetic, 'counter': counter, 'head': head, 'room': room, 'calibration': calibration, 'camera': camera, 'mouse': mouse, 'touch': touch}[a.which](a)) else 1)
 
 if __name__ == '__main__':
     main()

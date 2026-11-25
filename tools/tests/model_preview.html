@@ -1,0 +1,23 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#888">
+<script type="importmap">{ "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/addons/" } }</script>
+<canvas id="c" width="1600" height="1000"></canvas>
+<script type="module">
+// Contact sheet of models (?ids=a,b,c): each drawn from the front-right with its bounding box size, for laying out the room.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+const ids = new URLSearchParams(location.search).get('ids').split(','), man = await (await fetch('/assets/manifest.json')).json();
+const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder);
+const cv = document.getElementById('c'), R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true }); R.setScissorTest(true); R.autoClear = false; R.outputColorSpace = THREE.SRGBColorSpace;
+const cols = Math.ceil(Math.sqrt(ids.length * 1.6)), rows = Math.ceil(ids.length / cols), w = cv.width / cols, h = cv.height / rows, info = {};
+for (const [k, id] of ids.entries()) {
+  const g = (await L.loadAsync('/assets/' + man.models[id].file)).scene, sc = new THREE.Scene(); sc.background = new THREE.Color(0x9a9a9a);
+  sc.add(g, new THREE.HemisphereLight(0xffffff, 0x666666, 2.2)); const d = new THREE.DirectionalLight(0xffffff, 2.5); d.position.set(2, 3, 4); sc.add(d);
+  const b = new THREE.Box3().setFromObject(g), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3()), names = []; g.traverse(o => { if (o.isMesh) names.push(o.name + ':' + (o.material.name || '') + (o.material.transparent ? ':T' : '') + (o.material.emissiveMap || o.material.emissive?.getHex() ? ':E' : '')); });
+  info[id] = { size: s.toArray().map(x => +x.toFixed(3)), min: b.min.toArray().map(x => +x.toFixed(3)), max: b.max.toArray().map(x => +x.toFixed(3)), meshes: names.slice(0, 8), n: names.length, top: g.children.map(o => o.name).slice(0, 10) };
+  const cam = new THREE.PerspectiveCamera(30, w / h, 0.01, 50), r = Math.max(s.x, s.y, s.z) * 2.3; cam.position.set(c.x + r * 0.55, c.y + r * 0.3, c.z + r * 0.8); cam.lookAt(c);
+  sc.add(new THREE.Box3Helper(b, 0xffff00));
+  const x = (k % cols) * w, y = cv.height - (Math.floor(k / cols) + 1) * h; R.setViewport(x, y, w, h); R.setScissor(x, y, w, h); R.clear(); sc.add(new THREE.AxesHelper(0.4)); R.render(sc, cam);
+}
+window.__info = info;
+</script>

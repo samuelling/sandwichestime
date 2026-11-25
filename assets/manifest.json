@@ -277,6 +277,102 @@
     "Dairon Sanchez"
    ],
    "bytes": 2812333
+  },
+  "wooden_table_02": {
+   "file": "models/wooden_table_02/wooden_table_02_1k.gltf",
+   "name": "Wooden Table 02",
+   "authors": [
+    "Serhii Khromov"
+   ],
+   "bytes": 485316
+  },
+  "painted_wooden_chair_01": {
+   "file": "models/painted_wooden_chair_01/painted_wooden_chair_01_1k.gltf",
+   "name": "Painted Wooden Chair 01",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 492550
+  },
+  "modern_ceiling_lamp_01": {
+   "file": "models/modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf",
+   "name": "Modern Ceiling Lamp 01",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 436065
+  },
+  "hanging_picture_frame_01": {
+   "file": "models/hanging_picture_frame_01/hanging_picture_frame_01_1k.gltf",
+   "name": "Hanging Picture Frame 01",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 397466
+  },
+  "hanging_picture_frame_02": {
+   "file": "models/hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",
+   "name": "Hanging Picture Frame 02",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 696031
+  },
+  "standing_picture_frame_01": {
+   "file": "models/standing_picture_frame_01/standing_picture_frame_01_1k.gltf",
+   "name": "Standing Picture Frame 01",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 447425
+  },
+  "potted_plant_02": {
+   "file": "models/potted_plant_02/potted_plant_02_1k.gltf",
+   "name": "Potted Plant 02",
+   "authors": [
+    "Rico Cilliers"
+   ],
+   "bytes": 2634698
+  },
+  "wicker_basket_02": {
+   "file": "models/wicker_basket_02/wicker_basket_02_1k.gltf",
+   "name": "Wicker Basket 02",
+   "authors": [
+    "Kuutti Siitonen"
+   ],
+   "bytes": 3064509
+  },
+  "wooden_broom": {
+   "file": "models/wooden_broom/wooden_broom_1k.gltf",
+   "name": "Wooden Broom",
+   "authors": [
+    "Balen"
+   ],
+   "bytes": 3424320
+  },
+  "book_encyclopedia_set_01": {
+   "file": "models/book_encyclopedia_set_01/book_encyclopedia_set_01_1k.gltf",
+   "name": "Book Encyclopedia Set 01",
+   "authors": [
+    "John Malcolm"
+   ],
+   "bytes": 3261046
+  },
+  "ceramic_vase_02": {
+   "file": "models/ceramic_vase_02/ceramic_vase_02_1k.gltf",
+   "name": "Ceramic Vase 02",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 750161
+  },
+  "ceramic_vase_04": {
+   "file": "models/ceramic_vase_04/ceramic_vase_04_1k.gltf",
+   "name": "Ceramic Vase 04",
+   "authors": [
+    "James Ray Cock"
+   ],
+   "bytes": 596053
   }
  },
  "textures": {

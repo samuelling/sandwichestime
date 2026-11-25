@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#888">
+<script type="importmap">{ "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/addons/" } }</script>
+<canvas id="c" width="1800" height="1200"></canvas>
+<script type="module">
+// Contact sheet of the Blender-built room kit (tools/blender/build_room_kit.py): ?only=a,b picks parts, ?view=front|side|top|q.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+const Q = new URLSearchParams(location.search), L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder);
+const kit = (await L.loadAsync('/assets/models/room_kit/room_kit.gltf')).scene;
+let nodes = kit.children.slice(); if (Q.get('only')) nodes = nodes.filter(n => Q.get('only').split(',').some(k => n.name.startsWith(k)));
+const cv = document.getElementById('c'), R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true }); R.setScissorTest(true); R.autoClear = false;
+R.toneMapping = THREE.ACESFilmicToneMapping; R.shadowMap.enabled = true;
+const cols = Math.ceil(Math.sqrt(nodes.length * 1.5)), rows = Math.ceil(nodes.length / cols), w = cv.width / cols, h = cv.height / rows, info = {};
+const view = Q.get('view') || 'q';
+for (const [k, n] of nodes.entries()) {
+  const sc = new THREE.Scene(); sc.background = new THREE.Color(0xa9a59e); const g = n.clone(true); g.position.set(0, 0, 0); sc.add(g);
+  g.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.side = THREE.DoubleSide; o.castShadow = o.receiveShadow = true; if (/glass$/.test(o.material.name)) { o.material.transparent = true; o.material.opacity = 0.2; } } });
+  sc.add(new THREE.HemisphereLight(0xffffff, 0x8a8478, 1.6)); const d = new THREE.DirectionalLight(0xfff2dd, 3.2); 
+  const b = new THREE.Box3().setFromObject(g), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3()), r = Math.max(s.x, s.y, s.z);
+  d.position.set(c.x - r, c.y + 1.5 * r, c.z + 2 * r); d.target.position.copy(c); d.castShadow = true; Object.assign(d.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 0.01, far: 6 * r }); d.shadow.mapSize.set(2048, 2048); d.shadow.bias = -0.0005; sc.add(d, d.target);
+  info[n.name] = { size: s.toArray().map(x => +x.toFixed(3)), min: b.min.toArray().map(x => +x.toFixed(3)), max: b.max.toArray().map(x => +x.toFixed(3)), mats: [...new Set((() => { const a = []; g.traverse(o => o.isMesh && a.push(o.material.name)); return a; })())] };
+  const cam = new THREE.PerspectiveCamera(28, w / h, 0.01, 80), dist = r * 2.4;
+  const dir = { q: [0.55, 0.32, 0.8], front: [0, 0.05, 1], side: [1, 0.1, 0.15], top: [0.05, 1, 0.3], back: [-0.4, 0.25, -0.8], low: [0.5, -0.25, 0.8] }[view];
+  cam.position.set(c.x + dist * dir[0], c.y + dist * dir[1], c.z + dist * dir[2]); cam.lookAt(c);
+  const x = (k % cols) * w, y = cv.height - (Math.floor(k / cols) + 1) * h; R.setViewport(x, y, w, h); R.setScissor(x, y, w, h); R.clear(); R.render(sc, cam);
+}
+window.__info = info;
+</script>

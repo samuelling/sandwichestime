@@ -142,6 +142,52 @@ and model recovery before any real data are trusted.
   specificity.
 * Every placement comes from a seed and is written to the log.
 
+## The room
+
+Head tracking lets a participant look anywhere, so the kitchen is a complete
+room rather than a set with one finished wall. Like a film set that has to
+survive the actor turning round, every direction ends in something built.
+
+* **Shell** (`src/scene/room.js`): left wall, right wall with a second window,
+  rear wall with a doorway, and a short hall beyond it with its own light, so
+  the open door shows a lit space and not a void. Walls are single-sided sheets
+  cut with their openings, in world coordinates so plaster and parquet keep one
+  texture scale.
+* **Kit** (`tools/blender/build_room_kit.py` → `assets/models/room_kit`): the
+  parts that have to look made rather than extruded are modelled in Blender
+  through its Python module: a four-panel door with raised fields and a knob,
+  moulded door lining and architraves, casement windows with glazing bars,
+  stays and a sill, a cornice and skirting swept round the room, a column
+  radiator with valves and pipes, a plate-rack dresser with turned knobs and
+  its crockery, a peg rail, switch and socket plates, Roman blinds. The apron,
+  tea towel and table runner are cloth simulations (pinned at the pegs, or
+  dropped over a table-sized collider) baked to meshes. About 64,000 triangles,
+  0.6 MB. Parts are named nodes; materials are named and replaced at load with
+  the app's own (`kitMaterials`), so paint, brass and oak match the cabinets.
+  Meshopt stores each part's de-quantisation transform on its node, so parts
+  are placed by a wrapper group and the node itself is never moved.
+* **Furniture**: CC0 Poly Haven scans (table, painted chairs, pendant, picture
+  frames, plants, basket, broom, books, vases). The four heaviest are thinned
+  with meshopt's simplifier before compression (`SIMPLIFY` in
+  `tools/compress_models.sh`), which takes about 210,000 triangles out of the
+  room with no difference visible from the counter. The scans' picture glass is
+  exported opaque and is replaced with clear glass; the tall frame shipped with
+  a placeholder card and carries a lemon-branch print drawn in a canvas.
+* **Light**: the sun's shadow camera is fitted to the whole room and hall
+  (4096 map), so nothing is lit through a wall. The directional sun is tuned
+  for the counter; a second, narrow beam along the same direction enters the
+  side window only and lays the patch of sun on the table and floor. That beam
+  and the pendant light reach nothing that moves, so their shadow maps are
+  drawn once and kept.
+* **Data**: every part is a fixture with an AOI name (`table`, `chair`,
+  `dresser`, `door`, `hall`, `window_side`, `picture`, `plant`, `radiator`,
+  `apron`, …) and is listed in `layout.room` in the log, with `meta.room`
+  recording `full` or `plain`. Nothing in the room can be picked up.
+* **Cost**: about 590,000 triangles in the scene with the full room against
+  300,000 with `room=plain`, and roughly 9% more draw calls. Frame rate has
+  been checked only in software rendering; `room=plain` is the fallback, and
+  the default on phones.
+
 ## Hands
 
 Every input source produces the same thing: 21 hand landmarks in world space, a
@@ -388,8 +434,14 @@ task did not have, so they are optional and recorded in `meta.aids`. Turn them
 off for sessions where gaze is the measure of interest, or treat them as a
 factor.
 
-## Known limitations (v0.5)
+## Known limitations (v0.7)
 
+* The full room nearly doubles the triangles drawn. It has not been timed
+  on real graphics hardware; use `room=plain` if the frame rate drops.
+* Room furniture is scenery: it cannot be grasped or moved, and you cannot
+  walk to it (the body moves along the counter only).
+* The view through both windows is a flat picture, so it does not shift
+  correctly when you lean.
 * Physics is light. Objects settle onto the highest support under their
   footprint, but nothing collides while it is held, and an object set down on
   top of a non-support object (a spoon) interpenetrates it.
@@ -422,7 +474,9 @@ factor.
   physical phone. Memory on older phones is the open question.
 * Layouts changed in v0.2 (more props) and v0.3 (the knife is never placed
   hidden behind another object), so a seed gives a different arrangement than
-  in earlier versions. Each log records its own layout.
+  in earlier versions. Each log records its own layout. v0.7 moved the floor
+  plant and stools into the room and added the furniture; task objects and
+  counter distractors for a seed are where they were in v0.6.
 
 ## References
 

@@ -1,0 +1,240 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v4.5.1",
+    "version": "2.0"
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 33384,
+      "normalized": false,
+      "byteOffset": 0,
+      "bufferView": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 7094,
+      "max": [
+        23142,
+        32767,
+        23142
+      ],
+      "min": [
+        -23142,
+        -32767,
+        -23142
+      ],
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 1
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5122,
+      "count": 7094,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 2
+    },
+    {
+      "type": "VEC2",
+      "componentType": 5123,
+      "count": 7094,
+      "normalized": true,
+      "byteOffset": 0,
+      "bufferView": 3
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 1,
+      "byteOffset": 0,
+      "byteLength": 66768,
+      "target": 34963,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 0,
+          "byteLength": 12721,
+          "mode": "TRIANGLES",
+          "byteStride": 2,
+          "count": 33384
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 66768,
+      "byteLength": 56752,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 12724,
+          "byteLength": 32677,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 7094
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 123520,
+      "byteLength": 56752,
+      "target": 34962,
+      "byteStride": 8,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 45404,
+          "byteLength": 34349,
+          "mode": "ATTRIBUTES",
+          "byteStride": 8,
+          "count": 7094
+        }
+      }
+    },
+    {
+      "buffer": 1,
+      "byteOffset": 180272,
+      "byteLength": 28376,
+      "target": 34962,
+      "byteStride": 4,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "buffer": 0,
+          "byteOffset": 79756,
+          "byteLength": 19207,
+          "mode": "ATTRIBUTES",
+          "byteStride": 4,
+          "count": 7094
+        }
+      }
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "name": "ceramic_vase_02_nor_gl",
+      "mimeType": "image/jpeg",
+      "uri": "textures/ceramic_vase_02_nor_gl_1k.jpg"
+    },
+    {
+      "name": "ceramic_vase_02_diff",
+      "mimeType": "image/jpeg",
+      "uri": "textures/ceramic_vase_02_diff_1k.jpg"
+    },
+    {
+      "name": "ceramic_vase_02_rough",
+      "mimeType": "image/jpeg",
+      "uri": "textures/ceramic_vase_02_rough_1k.jpg"
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "ceramic_vase_02.bin",
+      "byteLength": 98964
+    },
+    {
+      "byteLength": 208648,
+      "extensions": {
+        "EXT_meshopt_compression": {
+          "fallback": true
+        }
+      }
+    }
+  ],
+  "materials": [
+    {
+      "name": "ceramic_vase_02",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "metallicFactor": 0,
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      },
+      "normalTexture": {
+        "index": 1
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Cylinder.003",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 1,
+            "NORMAL": 2,
+            "TEXCOORD_0": 3
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "ceramic_vase_02",
+      "translation": [
+        7.450580596923828e-9,
+        0.155735990148969,
+        1.4901161193847656e-8
+      ],
+      "scale": [
+        0.1545924040256068,
+        0.1545924040256068,
+        0.1545924040256068
+      ],
+      "mesh": 0
+    }
+  ],
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "extensionsUsed": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ],
+  "extensionsRequired": [
+    "EXT_meshopt_compression",
+    "KHR_mesh_quantization"
+  ]
+}
